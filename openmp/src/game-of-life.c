@@ -30,3 +30,26 @@ uint8_t count_alive_neighbors(const gol_t* gol, const uint32_t i, const uint32_t
             gol->current[IDX(i, j - 1)    ]                               + gol->current[IDX(i, j + 1)    ] +
             gol->current[IDX(i + 1, j - 1)] + gol->current[IDX(i + 1, j)] + gol->current[IDX(i + 1, j + 1)];
 }
+
+void swap_grids(gol_t* gol) {
+    cell_t* temp = gol->current;
+    gol->current = gol->next;
+    gol->next = temp;
+}
+
+void step(gol_t* gol) {
+    for (uint32_t i = 1; i < gol->size - 1; i++) {
+        for (uint32_t j = 1; j < gol->size - 1; j++) {
+
+            uint8_t alive_neighbors = count_alive_neighbors(gol, i, j);
+
+            // The state of the current cell
+            cell_t is_alive = gol->current[IDX(i, j)];
+
+            // The state of the current cell in the next step based on the rules of the game of life
+            cell_t next_state = is_alive && !(alive_neighbors < 2 || alive_neighbors > 3) || (!is_alive && alive_neighbors == 3);
+
+            gol->next[IDX(i, j)] = next_state;
+        }
+    }
+}
