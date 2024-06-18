@@ -37,7 +37,7 @@ void swap_grids(gol_t* gol) {
     gol->next = temp;
 }
 
-void step(gol_t* gol) {
+void step(const gol_t* gol) {
     for (uint32_t i = 1; i < gol->size - 1; i++) {
         for (uint32_t j = 1; j < gol->size - 1; j++) {
 

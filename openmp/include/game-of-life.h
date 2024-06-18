@@ -39,17 +39,17 @@ void init_grid(const gol_t* gol, float density);
 uint8_t count_alive_neighbors(const gol_t* gol, uint32_t i, uint32_t j);
 
 /**
+ * @brief Performs one step of the game of life.
+ * 
+ * @param gol The game of life structure
+ */
+void step(const gol_t* gol);
+
+/**
  * @brief Swaps the current and next grids.
  * 
  * @param gol The game of life structure
  */
 void swap_grids(gol_t* gol);
-
-/**
- * @brief Performs one step of the game of life.
- * 
- * @param gol The game of life structure
- */
-void step(gol_t* gol);
 
 #endif
