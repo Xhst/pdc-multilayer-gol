@@ -20,4 +20,12 @@ typedef struct {
  */
 void init_gol(gol_t *gol, uint32_t grid_size, uint32_t seed, float density);
 
+/**
+ * @brief Initializes the grid with the given density.
+ * 
+ * @param gol The game of life structure
+ * @param density The density of the grid
+ */
+void init_grid(const gol_t* gol, const float density);
+
 #endif
