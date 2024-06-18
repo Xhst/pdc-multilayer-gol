@@ -34,10 +34,10 @@ int main(int argc, char *argv[]) {
 
     if (grid_size == 0 || num_layers == 0 || num_steps == 0) {
         fprintf(stderr, "Invalid input\n");
-        return 1;
+        return EXIT_FAILURE;
     }
 
     start_game(grid_size, num_layers, num_steps, seed);
 
-    return 0;
+    return EXIT_SUCCESS;
 }
