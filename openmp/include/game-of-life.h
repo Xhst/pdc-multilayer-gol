@@ -5,4 +5,10 @@
 
 typedef uint8_t cell_t;
 
+typedef struct {
+    cell_t* current;
+    cell_t* next;
+    uint32_t size;
+} gol_t;
+
 #endif
