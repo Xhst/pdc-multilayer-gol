@@ -24,3 +24,9 @@ void init_grid(const gol_t* gol, const float density) {
         }
     }
 }
+
+uint8_t count_alive_neighbors(const gol_t* gol, const uint32_t i, const uint32_t j) {
+    return  gol->current[IDX(i - 1, j - 1)] + gol->current[IDX(i - 1, j)] + gol->current[IDX(i - 1, j + 1)] +
+            gol->current[IDX(i, j - 1)    ]                               + gol->current[IDX(i, j + 1)    ] +
+            gol->current[IDX(i + 1, j - 1)] + gol->current[IDX(i + 1, j)] + gol->current[IDX(i + 1, j + 1)];
+}
