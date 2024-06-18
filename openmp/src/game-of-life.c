@@ -53,3 +53,23 @@ void step(const gol_t* gol) {
         }
     }
 }
+
+void fill_ghost_cells(const gol_t* gol) {
+    // Left and right borders
+    for (uint32_t i = 1; i < gol->size - 1; i++) {
+        gol->current[IDX(i, 0)] = gol->current[IDX(i, gol->size - 2)];
+        gol->current[IDX(i, gol->size - 1)] = gol->current[IDX(i, 1)];
+    }
+
+    // Top and bottom borders
+    for (uint32_t j = 0; j < gol->size; j++) {
+        gol->current[IDX(0, j)] = gol->current[IDX(gol->size - 2, j)];
+        gol->current[IDX(gol->size - 1, j)] = gol->current[IDX(1, j)];
+    }
+    
+    // Corners
+    gol->current[IDX(0, 0)] = gol->current[IDX(gol->size - 2, gol->size - 2)];
+    gol->current[IDX(0, gol->size - 1)] = gol->current[IDX(gol->size - 2, 1)];
+    gol->current[IDX(gol->size - 1, 0)] = gol->current[IDX(1, gol->size - 2)];
+    gol->current[IDX(gol->size - 1, gol->size - 1)] = gol->current[IDX(1, 1)];
+}

@@ -52,4 +52,11 @@ void step(const gol_t* gol);
  */
 void swap_grids(gol_t* gol);
 
+/**
+ * @brief Fills the ghost cells of the grid.
+ * 
+ * @param gol The game of life structure
+ */
+void fill_ghost_cells(const gol_t* gol);
+
 #endif
