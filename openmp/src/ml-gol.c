@@ -3,11 +3,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void start_game(uint32_t grid_size, uint32_t num_layers, uint32_t num_steps, uint32_t seed) {
+#define DEFAULT_DENSITY 0.3
+
+void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint32_t num_steps, const uint32_t seed) {
     srand(seed);
 
-    printf("Grid size: %u\n", grid_size);
-    printf("Number of layers: %u\n", num_layers);
-    printf("Number of steps: %u\n", num_steps);
-    printf("Seed: %u\n", seed);
+    ml_gol_t* ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
+    ml_gol->num_layers = num_layers;
+    ml_gol->layers = (gol_t*) malloc(num_layers * sizeof(gol_t));
+
+    for (uint32_t i = 0; i < num_layers; i++) {
+        init_gol(&ml_gol->layers[i], grid_size, seed * (i + 1) % num_layers, DEFAULT_DENSITY);
+    }
+
 }
