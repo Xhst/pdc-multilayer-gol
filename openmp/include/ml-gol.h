@@ -3,6 +3,13 @@
 
 #include <stdint.h>
 
+#include "game-of-life.h"
+
+typedef struct {
+    gol_t* layers;
+    uint32_t num_layers;
+} ml_gol_t;
+
 /**
  * @brief Function to start the multilayer game of life.
  * 
