@@ -8,6 +8,9 @@
 typedef struct {
     gol_t* layers;
     uint32_t num_layers;
+    cell_t* combined;
+    cell_t* dependent;
+    uint32_t grid_size;
 } ml_gol_t;
 
 /**
@@ -19,5 +22,12 @@ typedef struct {
  * @param seed Seed for the random number generator
  */
 void start_game(uint32_t grid_size, uint32_t num_layers, uint32_t num_steps, uint32_t seed);
+
+/**
+ * @brief Frees the memory allocated for the multilayer game of life structure.
+ * 
+ * @param ml_gol The multilayer game of life structure
+ */
+void free_ml_gol(ml_gol_t* ml_gol);
 
 #endif
