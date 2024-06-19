@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#include "game-of-life.h"
 #include "color.h"
+#include "game-of-life.h"
 
 /**
  * @brief Structure to represent the multilayer game of life.
@@ -48,6 +48,31 @@ void init_ml_gol(ml_gol_t* ml_gol, uint32_t grid_size, uint32_t num_layers, uint
  * @param ml_gol The multilayer game of life structure
  */
 void calculate_combined(const ml_gol_t* ml_gol);
+
+/**
+ * @brief Creates a PNG file for the given step of the multilayer game of life.
+ * 
+ * @param ml_gol The multilayer game of life structure
+ * @param step The step number
+ */
+void create_png_for_step(const ml_gol_t* ml_gol, const uint32_t step);
+
+/**
+ * @brief Resets the combined and dependent grids to black.
+ * 
+ * @param ml_gol The multilayer game of life structure
+ */
+void reset_combined_and_dependent(ml_gol_t* ml_gol);
+
+/**
+ * @brief Writes the given buffer to a PNG file.
+ * 
+ * @param filename The name of the file
+ * @param width The width of the image
+ * @param height The height of the image
+ * @param buffer The buffer containing the image data
+ */
+void write_png_file(const char* filename, uint32_t width, uint32_t height, uint8_t* buffer);
 
 /**
  * @brief Calculates the dependent grid from the layers of the multilayer game of life.
