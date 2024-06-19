@@ -38,7 +38,7 @@ You can specify extra parameters:
 
 `<num_steps>` the max number of steps, default 64.
 
-`<density>` the initial density of the greed when generated, default 0.3.
+`<density>` the initial density of the grids when generated, default 0.3.
 
 `<seed>` the seed used for the random number generator, the default uses the **time()** function from **time.h**.
 
