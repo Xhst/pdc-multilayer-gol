@@ -34,6 +34,20 @@ void start_game(uint32_t grid_size, uint32_t num_layers, uint32_t num_steps, uin
 void init_ml_gol(ml_gol_t* ml_gol, uint32_t grid_size, uint32_t num_layers, uint32_t seed);
 
 /**
+ * @brief Calculates the combined grid from the layers of the multilayer game of life.
+ * 
+ * @param ml_gol The multilayer game of life structure
+ */
+void calculate_combined(const ml_gol_t* ml_gol);
+
+/**
+ * @brief Calculates the dependent grid from the layers of the multilayer game of life.
+ * 
+ * @param ml_gol The multilayer game of life structure
+ */
+void calculate_dependent(const ml_gol_t* ml_gol);
+
+/**
  * @brief Frees the memory allocated for the multilayer game of life structure.
  * 
  * @param ml_gol The multilayer game of life structure
