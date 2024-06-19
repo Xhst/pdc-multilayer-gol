@@ -5,6 +5,8 @@
 
 #include "game-of-life.h"
 
+typedef uint8_t cell_t;
+
 typedef struct {
     gol_t* layers;
     uint32_t num_layers;
