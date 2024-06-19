@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#include "color.h"
 #include "game-of-life.h"
+#include "color.h"
 
 /**
  * @brief Structure to represent the multilayer game of life.

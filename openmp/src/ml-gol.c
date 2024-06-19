@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "color.h"
-
 #define DEFAULT_DENSITY 0.3
 
 void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint32_t num_steps, const uint32_t seed) {
