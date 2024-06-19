@@ -5,8 +5,17 @@
 
 #include "game-of-life.h"
 
+
 typedef uint8_t cell_t;
 
+/**
+ * @brief Structure to represent the multilayer game of life.
+ * 
+ * The multilayer game of life is represented by an array of game of life structures (layers).
+ * The layers represent different instances of the game of life, each with standard rules.
+ * The combined grid represents the combined state of all the layers, while the dependent grid represents a dependent state based on the layers.
+ * The grid_size represents the size of the grids (layers, combined and dependent).
+ */
 typedef struct {
     gol_t* layers;
     uint32_t num_layers;
