@@ -30,14 +30,16 @@ To execute the OpenMp version move to the openmp directory and then run:
 ```
 You can specify extra parameters:
 ```
-./bin/multilayer-game-of-life <grid_size> <num_layers> <num_steps> <seed>
+./bin/multilayer-game-of-life <grid_size> <num_layers> <num_steps> <density> <seed>
 ```
 `<grid_size>` is the size of the grids (layers, combined and dependent), default 128.
 
- `<num_layers>` is the number of layers, default 3.
+`<num_layers>` is the number of layers, default 3.
 
- `<num_steps>` the max number of steps, default 64.
- 
- `<seed>` the seed used for the random number generator, the default uses the **time()** function from **time.h**.
+`<num_steps>` the max number of steps, default 64.
+
+`<density>` the initial density of the greed when generated, default 0.3.
+
+`<seed>` the seed used for the random number generator, the default uses the **time()** function from **time.h**.
 
 ## 🟢 Cuda Version
