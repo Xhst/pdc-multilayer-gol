@@ -24,20 +24,14 @@ typedef struct {
 void start_game(uint32_t grid_size, uint32_t num_layers, uint32_t num_steps, uint32_t seed);
 
 /**
- * @brief Initializes the layers of the multilayer game of life.
+ * @brief Initializes the multilayer game of life structure.
  * 
  * @param ml_gol The multilayer game of life structure
  * @param grid_size Size of the grid
+ * @param num_layers Number of layers
  * @param seed Seed for the random number generator
  */
-void init_layers(ml_gol_t* ml_gol, uint32_t grid_size, uint32_t seed);
-
-/**
- * @brief Calculates the dependent layer of the multilayer game of life.
- * 
- * @param ml_gol The multilayer game of life structure
- */
-void calculate_dependent(const ml_gol_t* ml_gol);
+void init_ml_gol(ml_gol_t* ml_gol, uint32_t grid_size, uint32_t num_layers, uint32_t seed);
 
 /**
  * @brief Frees the memory allocated for the multilayer game of life structure.
