@@ -1,3 +1,15 @@
+/**
+ * @file main.c
+ * @brief Main file for the OpenMP implementation of the Game of Life
+ * 
+ * How to compile:
+ * move to the openmp directory and run 'make' command.
+ * Check the Makefile for more details.
+ * 
+ * How to run (from the openmp directory):
+ * ./bin/multilayer-game-of-life <grid_size> <num_layers> <num_steps> <seed>
+ * The parameters are optional, if not provided, the default values are used.
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
