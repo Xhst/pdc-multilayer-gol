@@ -15,7 +15,7 @@ void init_gol(gol_t* gol, const uint32_t grid_size, const float density) {
 void init_grid(const gol_t* gol, const float density) {
     for (uint32_t i = 1; i < gol->size - 1; i++) {
         for (uint32_t j = 1; j < gol->size - 1; j++) {
-            gol->current[idx(gol, i, j)] = (((float) rand()) / RAND_MAX < density);
+            gol->current[idx(gol, i, j)] = (((float) rand()) / RAND_MAX) < density;
         }
     }
 }
