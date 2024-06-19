@@ -26,7 +26,7 @@ typedef struct {
  * @param grid_size The size of the grid
  * @param density The density of the grid
  */
-void init_gol(gol_t *gol, uint32_t grid_size, uint32_t seed, float density);
+void init_gol(gol_t *gol, uint32_t grid_size, float density);
 
 /**
  * @brief Initializes the grid with the given density.
