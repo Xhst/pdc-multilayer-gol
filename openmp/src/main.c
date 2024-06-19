@@ -7,7 +7,7 @@
  * Check the Makefile for more details.
  * 
  * How to run (from the openmp directory):
- * ./bin/multilayer-game-of-life <grid_size> <num_layers> <num_steps> <seed>
+ * ./bin/multilayer-game-of-life <grid_size> <num_layers> <density> <num_steps> <seed>
  * The parameters are optional, if not provided, the default values are used.
  */
 #include <stdlib.h>
