@@ -11,6 +11,6 @@
  * @param height The height of the image
  * @param buffer The buffer with the image data
  */
-void write_png_file(const char* filename, uint32_t width, uint32_t height, const uint8_t* buffer);
+void write_png_file(const char* filename, uint32_t width, uint32_t height, uint8_t* buffer);
 
 #endif
