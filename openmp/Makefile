@@ -34,7 +34,10 @@ SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
 # rules
-all: $(TARGET)
+all: directories $(TARGET)
+
+directories:
+	mkdir -p $(OBJ_DIR) $(BIN_DIR)
 
 $(TARGET): $(OBJS)
 	$(CC) $(OBJS) $(LDFLAGS) -o $@
@@ -46,4 +49,4 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 clean:
 	rm -f $(OBJ_DIR)/*.o $(TARGET)
 
-.PHONY: all clean
+.PHONY: all clean directories
