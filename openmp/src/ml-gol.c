@@ -59,6 +59,8 @@ void reset_combined_and_dependent(ml_gol_t* ml_gol) {
 }
 
 void init_ml_gol(ml_gol_t* ml_gol, const uint32_t grid_size, const uint32_t num_layers, const float density, const uint32_t seed) {
+    srand(seed);
+
     ml_gol->num_layers = num_layers;
     ml_gol->layers = (gol_t*) malloc(num_layers * sizeof(gol_t));
 
