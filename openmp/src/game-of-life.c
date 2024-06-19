@@ -77,5 +77,4 @@ void fill_ghost_cells(const gol_t* gol) {
 void free_gol(gol_t* gol) {
     free(gol->current);
     free(gol->next);
-    free(gol);
 }

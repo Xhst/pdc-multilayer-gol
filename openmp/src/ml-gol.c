@@ -54,6 +54,7 @@ void free_ml_gol(ml_gol_t* ml_gol) {
     for (uint32_t i = 0; i < ml_gol->num_layers; i++) {
         free_gol(&ml_gol->layers[i]);
     }
+
     free(ml_gol->layers);
     free(ml_gol->combined);
     free(ml_gol->dependent);
