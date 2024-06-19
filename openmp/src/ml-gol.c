@@ -29,6 +29,21 @@ void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint3
             fill_ghost_cells(&ml_gol->layers[i]);
             step(&ml_gol->layers[i]);
             swap_grids(&ml_gol->layers[i]);
+            calculate_dependent(ml_gol);
+        }
+    }
+}
+
+void calculate_dependent(const ml_gol_t* ml_gol) {
+    for (uint32_t i = 0; i < ml_gol->grid_size; i++) {
+        for (uint32_t j = 0; j < ml_gol->grid_size; j++) {
+            uint32_t dep_idx = i * ml_gol->grid_size + j;
+            uint32_t lay_idx = (i + 1) * (ml_gol->grid_size + 2) + (j + 1);
+
+            ml_gol->dependent[dep_idx] = 0;
+            for (uint32_t l = 1; l < ml_gol->num_layers; l++) {
+                ml_gol->dependent[dep_idx] += ml_gol->layers[l].current[lay_idx];
+            }
         }
     }
 }
