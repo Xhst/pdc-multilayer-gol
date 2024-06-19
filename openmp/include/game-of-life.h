@@ -59,4 +59,11 @@ void swap_grids(gol_t* gol);
  */
 void fill_ghost_cells(const gol_t* gol);
 
+/**
+ * @brief Frees the memory allocated for the game of life structure.
+ * 
+ * @param gol The game of life structure
+ */
+void free_gol(gol_t* gol);
+
 #endif

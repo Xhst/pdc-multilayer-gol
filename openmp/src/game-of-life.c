@@ -73,3 +73,9 @@ void fill_ghost_cells(const gol_t* gol) {
     gol->current[IDX(gol->size - 1, 0)] = gol->current[IDX(1, gol->size - 2)];
     gol->current[IDX(gol->size - 1, gol->size - 1)] = gol->current[IDX(1, 1)];
 }
+
+void free_gol(gol_t* gol) {
+    free(gol->current);
+    free(gol->next);
+    free(gol);
+}
