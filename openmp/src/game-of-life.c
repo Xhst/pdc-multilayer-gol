@@ -1,16 +1,15 @@
 #include "game-of-life.h"
 
-#include <stdlib.h>
 
 void init_gol(gol_t* gol, const uint32_t grid_size, const uint32_t seed, const float density) {
     srand(seed);
 
     // size of the grid + 2 for the ghost cells
     gol->size = grid_size + 2;
-    size_t size = (gol->size) * (gol->size) * sizeof(cell_t);
+    size_t size = (gol->size) * (gol->size) * sizeof(bool);
 
-    gol->current = (cell_t*) malloc(size);
-    gol->next = (cell_t*) malloc(size);
+    gol->current = (bool*) malloc(size);
+    gol->next = (bool*) malloc(size);
 
     init_grid(gol, density);
 }
@@ -30,7 +29,7 @@ uint8_t count_alive_neighbors(const gol_t* gol, const uint32_t i, const uint32_t
 }
 
 void swap_grids(gol_t* gol) {
-    cell_t* temp = gol->current;
+    bool* temp = gol->current;
     gol->current = gol->next;
     gol->next = temp;
 }
@@ -42,10 +41,10 @@ void step(const gol_t* gol) {
             uint8_t alive_neighbors = count_alive_neighbors(gol, i, j);
 
             // The state of the current cell
-            cell_t is_alive = gol->current[idx(gol, i, j)];
+            bool is_alive = gol->current[idx(gol, i, j)];
 
             // The state of the current cell in the next step based on the rules of the game of life
-            cell_t next_state = (is_alive && !(alive_neighbors < 2 || alive_neighbors > 3)) || (!is_alive && alive_neighbors == 3);
+            bool next_state = (is_alive && !(alive_neighbors < 2 || alive_neighbors > 3)) || (!is_alive && alive_neighbors == 3);
 
             gol->next[idx(gol, i, j)] = next_state;
         }

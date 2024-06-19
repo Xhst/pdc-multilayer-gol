@@ -3,12 +3,11 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-
-typedef uint8_t cell_t;
+#include <stdbool.h>
 
 typedef struct {
-    cell_t* current;
-    cell_t* next;
+    bool* current;
+    bool* next;
     uint32_t size;
 } gol_t;
 
