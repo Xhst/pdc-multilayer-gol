@@ -19,6 +19,7 @@
 
 #define DEFAULT_GRID_SIZE 128
 #define DEFAULT_NUM_LAYERS 3
+#define DEFAULT_DENSITY 0.3
 #define DEFAULT_NUM_STEPS 64
 
 int main(int argc, char *argv[]) {
@@ -26,6 +27,7 @@ int main(int argc, char *argv[]) {
     uint32_t grid_size = DEFAULT_GRID_SIZE;
     uint32_t num_layers = DEFAULT_NUM_LAYERS;
     uint32_t num_steps = DEFAULT_NUM_STEPS;
+    float density = DEFAULT_DENSITY;
     uint32_t seed = time(NULL);
 
     if (argc > 1) {
@@ -41,6 +43,10 @@ int main(int argc, char *argv[]) {
     }
 
     if (argc > 4) {
+        density = atof(argv[4]);
+    }
+
+    if (argc > 5) {
         seed = atouint32(argv[4]);
     }
 
@@ -49,7 +55,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    start_game(grid_size, num_layers, num_steps, seed);
+    start_game(grid_size, num_layers, num_steps, density, seed);
 
     return EXIT_SUCCESS;
 }

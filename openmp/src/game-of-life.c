@@ -1,9 +1,7 @@
 #include "game-of-life.h"
 
 
-void init_gol(gol_t* gol, const uint32_t grid_size, const uint32_t seed, const float density) {
-    srand(seed);
-
+void init_gol(gol_t* gol, const uint32_t grid_size, const float density) {
     // size of the grid + 2 for the ghost cells
     gol->size = grid_size + 2;
     size_t size = (gol->size) * (gol->size) * sizeof(bool);

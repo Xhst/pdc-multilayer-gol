@@ -3,13 +3,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define DEFAULT_DENSITY 0.3
 
-void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint32_t num_steps, const uint32_t seed) {
-    srand(seed);
-
+void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint32_t num_steps, const float density, const uint32_t seed) {
     ml_gol_t* ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
-    init_ml_gol(ml_gol, grid_size, num_layers, seed);
+    init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
 
     for (uint32_t s = 0; s < num_steps; s++) {
         for (uint32_t i = 0; i < num_layers; i++) {
@@ -61,7 +58,7 @@ void reset_combined_and_dependent(ml_gol_t* ml_gol) {
     }
 }
 
-void init_ml_gol(ml_gol_t* ml_gol, const uint32_t grid_size, const uint32_t num_layers, const uint32_t seed) {
+void init_ml_gol(ml_gol_t* ml_gol, const uint32_t grid_size, const uint32_t num_layers, const float density, const uint32_t seed) {
     ml_gol->num_layers = num_layers;
     ml_gol->layers = (gol_t*) malloc(num_layers * sizeof(gol_t));
 
@@ -69,7 +66,7 @@ void init_ml_gol(ml_gol_t* ml_gol, const uint32_t grid_size, const uint32_t num_
     ml_gol->grid_size = grid_size + 2;
 
     for (uint32_t i = 0; i < ml_gol->num_layers; i++) {
-        init_gol(&ml_gol->layers[i], ml_gol->grid_size, seed * (i + 1) % ml_gol->num_layers, DEFAULT_DENSITY);
+        init_gol(&ml_gol->layers[i], ml_gol->grid_size, seed * (i + 1) / ml_gol->num_layers, density);
     }
 
     size_t size = (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t);
@@ -99,6 +96,9 @@ void calculate_combined(const ml_gol_t* ml_gol) {
         for (uint32_t i = 0; i < ml_gol->grid_size; i++) {
             for (uint32_t j = 0; j < ml_gol->grid_size; j++) {
                 uint32_t idx = i * ml_gol->grid_size + j;
+
+                if (!ml_gol->layers[k].current[idx]) continue;
+
                 ml_gol->combined[idx] = add_colors(ml_gol->combined[idx], color);
             }
         }

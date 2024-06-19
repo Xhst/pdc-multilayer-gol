@@ -28,9 +28,10 @@ typedef struct {
  * @param grid_size Size of the grid
  * @param num_layers Number of layers
  * @param num_steps Number of steps
+ * @param density Density of the grid
  * @param seed Seed for the random number generator
  */
-void start_game(uint32_t grid_size, uint32_t num_layers, uint32_t num_steps, uint32_t seed);
+void start_game(uint32_t grid_size, uint32_t num_layers, uint32_t num_steps, float density, uint32_t seed);
 
 /**
  * @brief Initializes the multilayer game of life structure.
@@ -38,9 +39,10 @@ void start_game(uint32_t grid_size, uint32_t num_layers, uint32_t num_steps, uin
  * @param ml_gol The multilayer game of life structure
  * @param grid_size Size of the grid
  * @param num_layers Number of layers
+ * @param density Density of the grid
  * @param seed Seed for the random number generator
  */
-void init_ml_gol(ml_gol_t* ml_gol, uint32_t grid_size, uint32_t num_layers, uint32_t seed);
+void init_ml_gol(ml_gol_t* ml_gol, uint32_t grid_size, uint32_t num_layers, float density, uint32_t seed);
 
 /**
  * @brief Calculates the combined grid from the layers of the multilayer game of life.
