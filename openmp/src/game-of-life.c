@@ -47,7 +47,7 @@ void step(const gol_t* gol) {
             cell_t is_alive = gol->current[IDX(i, j)];
 
             // The state of the current cell in the next step based on the rules of the game of life
-            cell_t next_state = is_alive && !(alive_neighbors < 2 || alive_neighbors > 3) || (!is_alive && alive_neighbors == 3);
+            cell_t next_state = (is_alive && !(alive_neighbors < 2 || alive_neighbors > 3)) || (!is_alive && alive_neighbors == 3);
 
             gol->next[IDX(i, j)] = next_state;
         }
