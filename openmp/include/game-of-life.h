@@ -66,4 +66,16 @@ void fill_ghost_cells(const gol_t* gol);
  */
 void free_gol(gol_t* gol);
 
+/**
+ * @brief Returns the index of a cell in the grid.
+ * 
+ * @param gol The game of life structure
+ * @param i The row of the cell
+ * @param j The column of the cell
+ * @return size_t The index of the cell
+ */
+static inline size_t idx(const gol_t* gol, uint32_t i, uint32_t j) {
+    return i * gol->size + j;
+}
+
 #endif
