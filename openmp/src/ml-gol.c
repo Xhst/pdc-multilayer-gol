@@ -32,6 +32,8 @@ void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint3
             calculate_dependent(ml_gol);
         }
     }
+
+    free_ml_gol(ml_gol);
 }
 
 void calculate_dependent(const ml_gol_t* ml_gol) {
