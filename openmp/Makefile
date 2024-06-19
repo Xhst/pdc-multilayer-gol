@@ -21,11 +21,11 @@ BIN_DIR = bin
 CC = gcc
 
 # Compilation flags
-CFLAGS = -Wall -Wextra -I$(INC_DIR)
+CFLAGS = -Wall -Wextra -I$(INC_DIR) $(shell pkg-config --cflags libpng)
 
 # Linker flags
-LDFLAGS =
- 
+LDFLAGS = $(shell pkg-config --libs libpng)
+
 # Target executable
 TARGET = $(BIN_DIR)/multilayer-game-of-life
 
@@ -37,7 +37,7 @@ OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(OBJ_DIR)
