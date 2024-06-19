@@ -4,9 +4,7 @@
 #include <stdint.h>
 
 #include "game-of-life.h"
-
-
-typedef uint8_t cell_t;
+#include "color.h"
 
 /**
  * @brief Structure to represent the multilayer game of life.
@@ -19,8 +17,8 @@ typedef uint8_t cell_t;
 typedef struct {
     gol_t* layers;
     uint32_t num_layers;
-    cell_t* combined;
-    cell_t* dependent;
+    color_t* combined;
+    color_t* dependent;
     uint32_t grid_size;
 } ml_gol_t;
 

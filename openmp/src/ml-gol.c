@@ -34,10 +34,10 @@ void init_ml_gol(ml_gol_t* ml_gol, const uint32_t grid_size, const uint32_t num_
         init_gol(&ml_gol->layers[i], ml_gol->grid_size, seed * (i + 1) % ml_gol->num_layers, DEFAULT_DENSITY);
     }
 
-    size_t size = (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(cell_t);
+    size_t size = (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t);
 
-    ml_gol->combined = (cell_t*) malloc(size * sizeof(cell_t));
-    ml_gol->dependent = (cell_t*) malloc(size * sizeof(cell_t));
+    ml_gol->combined = (color_t*) malloc(size * sizeof(color_t));
+    ml_gol->dependent = (color_t*) malloc(size * sizeof(color_t));
 }
 
 void calculate_combined(const ml_gol_t* ml_gol) {
