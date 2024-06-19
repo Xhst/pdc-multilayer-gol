@@ -5,6 +5,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/**
+ * @brief Structure to represent the game of life.
+ * 
+ * The game of life is represented by two grids: the current grid and the next grid.
+ * The current grid represents the current state of the game, while the next grid represents the next state of the game.
+ * Each grid is represented as an array of boolean values, where true represents an alive cell and false represents a dead cell.
+ * The variable size represents the size of the grids.
+ */
 typedef struct {
     bool* current;
     bool* next;
