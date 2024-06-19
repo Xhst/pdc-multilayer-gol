@@ -45,9 +45,9 @@ void calculate_combined(const ml_gol_t* ml_gol) {
         for (uint32_t j = 0; j < ml_gol->grid_size; j++) {
             uint32_t idx = i * ml_gol->grid_size + j;
 
-            ml_gol->dependent[idx] = 0;
+            ml_gol->combined[idx] = 0;
             for (uint32_t k = 0; k < ml_gol->num_layers; k++) {
-                 ml_gol->dependent[idx] += ml_gol->layers[k].current[idx];
+                 ml_gol->combined[idx] += ml_gol->layers[k].current[idx];
             }
         }
     }
