@@ -66,7 +66,7 @@ void init_ml_gol(ml_gol_t* ml_gol, const uint32_t grid_size, const uint32_t num_
     ml_gol->grid_size = grid_size + 2;
 
     for (uint32_t i = 0; i < ml_gol->num_layers; i++) {
-        init_gol(&ml_gol->layers[i], ml_gol->grid_size, seed * (i + 1) / ml_gol->num_layers, density);
+        init_gol(&ml_gol->layers[i], ml_gol->grid_size, density);
     }
 
     size_t size = (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t);
