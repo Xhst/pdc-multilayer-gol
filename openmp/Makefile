@@ -1,16 +1,35 @@
+# Makefile for the OpenMP version of the Multilayer Game of Life
+# 
+# Move to the directory where this Makefile is located and run:
+# make
+#
+# To clean the directory, run:
+# make clean
+#
+# To run the program, run:
+# bin/multilayer-game-of-life 
+# Check the README.md file for more information.
+#
+
 # directories
 INC_DIR = include
 SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
 
+# Compiler
 CC = gcc
-CFLAGS = -Wall -Wextra -I$(INC_DIR)
-LDFLAGS =
 
+# Compilation flags
+CFLAGS = -Wall -Wextra -I$(INC_DIR)
+
+# Linker flags
+LDFLAGS =
+ 
+# Target executable
 TARGET = $(BIN_DIR)/multilayer-game-of-life
 
-
+# sources and objects
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
