@@ -21,10 +21,10 @@ BIN_DIR = bin
 CC = gcc
 
 # Compilation flags
-CFLAGS = -Wall -Wextra -I$(INC_DIR) $(shell pkg-config --cflags libpng) -lm
+CFLAGS = -Wall -Wextra -I$(INC_DIR) $(shell pkg-config --cflags libpng) -lm -fopenmp
 
 # Linker flags
-LDFLAGS = $(shell pkg-config --libs libpng) -lm
+LDFLAGS = $(shell pkg-config --libs libpng) -lm -fopenmp
 
 # Target executable
 TARGET = $(BIN_DIR)/multilayer-game-of-life
