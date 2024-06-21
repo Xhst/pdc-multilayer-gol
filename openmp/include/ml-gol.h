@@ -57,7 +57,17 @@ void calculate_combined(const ml_gol_t* ml_gol);
  * @param ml_gol The multilayer game of life structure
  * @param step The step number
  */
-void create_png_for_step(const ml_gol_t* ml_gol, const uint32_t step);
+void create_png_for_step(const ml_gol_t* ml_gol, uint32_t step);
+
+/**
+ * @brief Creates a PNG file for the given grid.
+ * 
+ * @param grid The grid
+ * @param grid_size The size of the grid
+ * @param step The step number
+ * @param folder The folder to save the PNG file
+ */
+void create_png_for_grid(const color_t* grid, uint32_t grid_size, uint32_t step, const char* folder);
 
 /**
  * @brief Resets the combined and dependent grids to black.
@@ -91,6 +101,23 @@ void calculate_dependent(const ml_gol_t* ml_gol);
  * @return The color for the layer
  */
 color_t get_color_for_layer(uint32_t layer, const uint32_t num_layers);
+
+/**
+ * @brief Prints the colors for the layers of the multilayer game of life.
+ * 
+ * @param ml_gol The multilayer game of life structure
+ */
+void print_layers_colors(const ml_gol_t* ml_gol);
+
+/**
+ * @brief Counts the number of alive neighbors for the given cell in the multilayer game of life.
+ * 
+ * @param ml_gol The multilayer game of life structure
+ * @param i The row index
+ * @param j The column index
+ * @return The number of alive neighbors
+ */
+uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, uint32_t i, uint32_t j);
 
 /**
  * @brief Frees the memory allocated for the multilayer game of life structure.

@@ -16,19 +16,17 @@ void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint3
             swap_grids(&ml_gol->layers[i]);
         }
         calculate_combined(ml_gol);
-        create_png_for_step(ml_gol, s);
+        calculate_dependent(ml_gol);
 
+        create_png_for_step(ml_gol, s);
         reset_combined_and_dependent(ml_gol);
     }
 
     free_ml_gol(ml_gol);
 }
 
-void create_png_for_step(const ml_gol_t* ml_gol, const uint32_t step) {
+void create_png_for_grid(const color_t* grid, const uint32_t grid_size, const uint32_t step, const char* folder) {
     char filename[50];
-
-    // The grid size without the ghost cells
-    uint32_t grid_size = ml_gol->grid_size - 2;
 
     // 4 channels: RGBA
     uint8_t buffer[grid_size * grid_size * 4];
@@ -36,17 +34,25 @@ void create_png_for_step(const ml_gol_t* ml_gol, const uint32_t step) {
     for (uint32_t i = 0; i < grid_size; i++) {
         for (uint32_t j = 0; j < grid_size; j++) {
             uint32_t idx = (i * grid_size + j) * 4;
-            uint32_t grid_idx = (i + 1) * ml_gol->grid_size + j + 1;
+            uint32_t grid_idx = i * grid_size + j;
 
-            buffer[idx] = ml_gol->combined[grid_idx].r;
-            buffer[idx + 1] = ml_gol->combined[grid_idx].g;
-            buffer[idx + 2] = ml_gol->combined[grid_idx].b;
+            buffer[idx] = grid[grid_idx].r;
+            buffer[idx + 1] = grid[grid_idx].g;
+            buffer[idx + 2] = grid[grid_idx].b;
             buffer[idx + 3] = 255;
         }
     }
 
-    sprintf(filename, "output/combined/combined%04d.png", step);
+    sprintf(filename, "output/%s/%s%04d.png", folder, folder, step);
     write_png_file(filename, grid_size, grid_size, buffer);
+}
+
+void create_png_for_step(const ml_gol_t* ml_gol, const uint32_t step) {
+    // The grid size without the ghost cells
+    uint32_t grid_size = ml_gol->grid_size - 2;
+
+    create_png_for_grid(ml_gol->combined, grid_size, step, "combined");
+    create_png_for_grid(ml_gol->dependent, grid_size, step, "dependent");
 }
 
 void reset_combined_and_dependent(ml_gol_t* ml_gol) {
@@ -119,6 +125,39 @@ void calculate_combined(const ml_gol_t* ml_gol) {
 
                 ml_gol->combined[idx] = add_colors(ml_gol->combined[idx], color);
             }
+        }
+    }
+}
+
+uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, const uint32_t i, const uint32_t j) {
+    uint8_t count = 0;
+
+    for (int32_t x = -1; x <= 1; x++) {
+        for (int32_t y = -1; y <= 1; y++) {
+            if (x == 0 && y == 0) continue;
+
+            uint32_t idx = (i + x) * ml_gol->grid_size + (j + y);
+
+            if (ml_gol->combined[idx].r > 0 && ml_gol->combined[idx].g > 0 && ml_gol->combined[idx].b > 0) {
+                count++;
+            }
+        }
+    }
+
+    return count;
+}
+
+void calculate_dependent(const ml_gol_t* ml_gol) {
+    for (uint32_t i = 1; i < ml_gol->grid_size - 1; i++) {
+        for (uint32_t j = 1; j < ml_gol->grid_size - 1; j++) {
+            uint32_t idx = i * ml_gol->grid_size + j;
+            
+            uint8_t alive_neighbors = count_dependent_alive_neighbors(ml_gol, i, j);
+
+            uint8_t channel_value = (uint8_t) ((((float) alive_neighbors) / 8) * 255);
+            
+            ml_gol->dependent[idx] = (color_t){channel_value, channel_value, channel_value};
+            
         }
     }
 }
