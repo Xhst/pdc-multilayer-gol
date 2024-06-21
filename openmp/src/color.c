@@ -1,6 +1,7 @@
 #include "color.h"
 
 #include <math.h>
+#include <stdio.h>
 
 color_t add_colors(const color_t c1, const color_t c2) {
     color_t result;
