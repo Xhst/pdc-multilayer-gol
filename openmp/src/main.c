@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <omp.h>
 
 #include "converter.h"
 #include "ml-gol.h"
@@ -55,7 +56,16 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    printf("Starting Multilayer Game of Life.\n");
+    printf("Max num of threads: %d\n",  omp_get_max_threads());
+
+    double tstart, tstop;
+    tstart = omp_get_wtime();
+
     start_game(grid_size, num_layers, num_steps, density, seed);
+
+    tstop = omp_get_wtime();
+    printf("Elapsed time: %f\n", tstop - tstart);
 
     return EXIT_SUCCESS;
 }
