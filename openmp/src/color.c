@@ -49,3 +49,7 @@ color_t hsv_to_rgb(color_hsv_t hsv) {
 
     return rgb;
 }
+
+void color_to_hex(color_t color, char* hex) {
+    sprintf(hex, "#%02x%02x%02x", color.r, color.g, color.b);
+}

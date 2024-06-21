@@ -30,4 +30,6 @@ color_t add_colors(const color_t c1, const color_t c2);
 
 color_t hsv_to_rgb(color_hsv_t hsv);
 
+void color_to_hex(color_t color, char* hex);
+
 #endif
