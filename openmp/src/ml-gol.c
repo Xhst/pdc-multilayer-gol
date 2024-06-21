@@ -6,6 +6,7 @@
 
 void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint32_t num_steps, const float density, const uint32_t seed) {
     ml_gol_t* ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
+
     init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
 
     for (uint32_t s = 0; s < num_steps; s++) {
@@ -49,12 +50,23 @@ void create_png_for_step(const ml_gol_t* ml_gol, const uint32_t step) {
 }
 
 void reset_combined_and_dependent(ml_gol_t* ml_gol) {
+    
     for (uint32_t i = 0; i < ml_gol->grid_size; i++) {
         for (uint32_t j = 0; j < ml_gol->grid_size; j++) {
             uint32_t idx = i * ml_gol->grid_size + j;
             ml_gol->combined[idx] = BLACK;
             ml_gol->dependent[idx] = BLACK;
         }
+    }
+}
+
+void print_layers_colors(const ml_gol_t* ml_gol) {
+    char hex[8];
+    printf("Colors for the layers:\n");
+    for (uint32_t i = 0; i < ml_gol->num_layers; i++) {
+        color_t color = get_color_for_layer(i, ml_gol->num_layers);
+        color_to_hex(color, hex);
+        printf("Layer %d: %s\n", i, hex);
     }
 }
 
@@ -77,6 +89,10 @@ void init_ml_gol(ml_gol_t* ml_gol, const uint32_t grid_size, const uint32_t num_
     ml_gol->dependent = (color_t*) malloc(size * sizeof(color_t));
 
     reset_combined_and_dependent(ml_gol);
+
+    printf("Initialized multilayer game of life with %d layers and grid size %d\n", num_layers, grid_size);
+    
+    print_layers_colors(ml_gol);
 }
 
 color_t get_color_for_layer(const uint32_t layer, const uint32_t num_layers) {

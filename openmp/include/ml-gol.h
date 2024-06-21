@@ -84,6 +84,15 @@ void write_png_file(const char* filename, uint32_t width, uint32_t height, uint8
 void calculate_dependent(const ml_gol_t* ml_gol);
 
 /**
+ * @brief Gets the color for the given layer.
+ * 
+ * @param layer The layer number
+ * @param num_layers The total number of layers
+ * @return The color for the layer
+ */
+color_t get_color_for_layer(uint32_t layer, const uint32_t num_layers);
+
+/**
  * @brief Frees the memory allocated for the multilayer game of life structure.
  * 
  * @param ml_gol The multilayer game of life structure
