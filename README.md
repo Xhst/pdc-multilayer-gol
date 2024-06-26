@@ -6,7 +6,7 @@ There are **N layers**, each with an instance of the **game of life** (with trad
 At each step it returns two matrices, one representing the first N layers (**combined matrix**) and one representing the dependent layer (**dependent matrix**).
 The combined matrix simultaneously represents all game-of-life layers with a combination of colors, while the dependent matrix will have the value of cells with rules based on the other layers.
 
-## 🟠 OpenMP version
+## 🔵 OpenMP version
 ### 🛠️ Build
 To build the OpenMP version move to the `openmp` directory:
 ```
@@ -42,4 +42,5 @@ You can specify extra parameters:
 
 `<seed>` the seed used for the random number generator, the default uses the **time()** function from **time.h**.
 
-## 🟢 Cuda Version
+## 🟠 Rust version
+## 🟢 Cuda version
