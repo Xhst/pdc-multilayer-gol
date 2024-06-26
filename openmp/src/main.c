@@ -16,7 +16,7 @@
 #include <omp.h>
 
 #include "converter.h"
-#include "ml-gol.h"
+#include "ml_gol.h"
 
 #define DEFAULT_GRID_SIZE 128
 #define DEFAULT_NUM_LAYERS 3

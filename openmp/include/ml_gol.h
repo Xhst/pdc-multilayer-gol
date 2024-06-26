@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "game-of-life.h"
+#include "game_of_life.h"
 #include "color.h"
 
 /**

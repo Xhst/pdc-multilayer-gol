@@ -1,4 +1,4 @@
-#include "ml-gol.h"
+#include "ml_gol.h"
 
 #include <stdlib.h>
 #include <stdio.h>

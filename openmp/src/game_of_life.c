@@ -1,4 +1,4 @@
-#include "game-of-life.h"
+#include "game_of_life.h"
 
 
 void init_gol(gol_t* gol, const uint32_t grid_size, const float density) {
