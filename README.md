@@ -1,5 +1,5 @@
 # PDC - Multilayer Game of Life
-Project for the course on **Parallel and Distributed Computing**, with implementations of **Multilayer Game of Life** in **OpenMP** and **Cuda**.
+Project for the course on **Parallel and Distributed Computing**, with implementations of **Multilayer Game of Life** in **OpenMP**, **Rust** and **Cuda**.
 
 ## 🔎 About
 There are **N layers**, each with an instance of the **game of life** (with traditional rules) plus a layer whose cells depend on the value of the other layers. 
