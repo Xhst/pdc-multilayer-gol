@@ -31,6 +31,7 @@ void write_png_file(const char* filename, uint32_t width, uint32_t height, uint8
     png_write_info(png, info);
 
     png_bytep rows[height];
+
     for(uint32_t y = 0; y < height; y++) {
         rows[y] = &buffer[y * width * 4];
     }

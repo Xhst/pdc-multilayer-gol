@@ -1,5 +1,5 @@
 # PDC - Multilayer Game of Life
-Project for the course on **Parallel and Distributed Computing**, with implementations of **Multilayer Game of Life** in **OpenMP** and **Cuda**.
+Project for the course on **Parallel and Distributed Computing**, with implementations of **Multilayer Game of Life** in **OpenMP**, **Rust** and **Cuda**.
 
 ## 🔎 About
 There are **N layers**, each with an instance of the **game of life** (with traditional rules) plus a layer whose cells depend on the value of the other layers. 
@@ -9,27 +9,27 @@ The combined matrix simultaneously represents all game-of-life layers with a com
 ## 🔵 OpenMP version
 ### 🛠️ Build
 To build the OpenMP version move to the `openmp` directory:
-```
+```bash
 cd openmp
 ```
 Then you can create the obj files and the executable using:
-```
+```bash
 make
 ```
 The obj files are located in `openmp/obj` while the executable is in the folder `openmp/bin`.
 
 You can clean the obj and bin directories using:
-```
+```bash
 make clean
 ```
 
 ### ▶️ Execute
 To execute the OpenMp version move to the openmp directory and then run:
-```
+```bash
 ./bin/multilayer-game-of-life
 ```
 You can specify extra parameters:
-```
+```bash
 ./bin/multilayer-game-of-life <grid_size> <num_layers> <num_steps> <density> <seed>
 ```
 `<grid_size>` is the size of the grids (layers, combined and dependent), default 128.

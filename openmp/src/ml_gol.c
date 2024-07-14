@@ -10,18 +10,21 @@ void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint3
     init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
 
     for (uint32_t s = 0; s < num_steps; s++) {
+    
         for (uint32_t i = 0; i < num_layers; i++) {
             fill_ghost_cells(&ml_gol->layers[i]);
             step(&ml_gol->layers[i]);
             swap_grids(&ml_gol->layers[i]);
         }
+        
         calculate_combined(ml_gol);
         calculate_dependent(ml_gol);
 
         create_png_for_step(ml_gol, s);
+
         reset_combined_and_dependent(ml_gol);
     }
-
+    
     free_ml_gol(ml_gol);
 }
 
@@ -117,6 +120,7 @@ void calculate_combined(const ml_gol_t* ml_gol) {
     for (uint32_t k = 0; k < ml_gol->num_layers; k++) { 
         color_t color = get_color_for_layer(k, ml_gol->num_layers);
         
+#pragma omp parallel for collapse(2)
         for (uint32_t i = 0; i < ml_gol->grid_size; i++) {
             for (uint32_t j = 0; j < ml_gol->grid_size; j++) {
                 uint32_t idx = i * ml_gol->grid_size + j;
@@ -148,6 +152,7 @@ uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, const uint32_t i
 }
 
 void calculate_dependent(const ml_gol_t* ml_gol) {
+#pragma omp parallel for collapse(2)
     for (uint32_t i = 1; i < ml_gol->grid_size - 1; i++) {
         for (uint32_t j = 1; j < ml_gol->grid_size - 1; j++) {
             uint32_t idx = i * ml_gol->grid_size + j;
