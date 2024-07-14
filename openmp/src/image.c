@@ -5,15 +5,27 @@
 
 void write_png_file(const char* filename, uint32_t width, uint32_t height, uint8_t* buffer) {
     FILE *fp = fopen(filename, "wb");
-    if(!fp) abort();
+    if(!fp) {
+        fprintf(stderr, "Could not open file %s for writing\n", filename);
+        abort();
+    }
 
     png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    if (!png) abort();
+    if (!png) {
+        fprintf(stderr, "Could not create write struct\n");
+        abort();
+    }
 
     png_infop info = png_create_info_struct(png);
-    if (!info) abort();
+    if (!info) {
+        fprintf(stderr, "Could not create info struct\n");
+        abort();
+    }
 
-    if (setjmp(png_jmpbuf(png))) abort();
+    if (setjmp(png_jmpbuf(png))) {
+        fprintf(stderr, "Error during png creation\n");
+        abort();
+    }
 
     png_init_io(png, fp);
 
