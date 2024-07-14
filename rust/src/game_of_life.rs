@@ -1,13 +1,20 @@
 use rand::Rng;
+use rayon::prelude::*;
 
 pub struct Gol {
-    size: u32,
+    size: usize,
     pub current: Vec<bool>,
     pub next: Vec<bool>,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct Point {
+    pub x: usize,
+    pub y: usize,
+}
+
 impl Gol {
-    pub fn new(grid_size: u32, density: f32) -> Gol {
+    pub fn new(grid_size: usize, density: f32) -> Gol {
         let size = grid_size + 2;
         let mut current = vec![false; (size * size) as usize];
         let next = vec![false; (size * size) as usize];
@@ -21,7 +28,7 @@ impl Gol {
         }
     }
 
-    fn init_grid(current: &mut [bool], size: u32, density: f32) {
+    fn init_grid(current: &mut [bool], size: usize, density: f32) {
         let mut rng = rand::thread_rng();
         for i in 1..size - 1 {
             for j in 1..size - 1 {
@@ -30,11 +37,15 @@ impl Gol {
         }
     }
 
-    fn idx(size: u32, i: u32, j: u32) -> usize {
-        (i * size + j) as usize
+    pub fn idx(size: usize, i: usize, j: usize) -> usize {
+        i * size + j
     }
 
-    fn count_alive_neighbors(&self, i: u32, j: u32) -> u8 {
+    pub fn point(size: usize, index: usize) -> Point {
+        Point {x: index % size, y: index / size}
+    }
+
+    fn count_alive_neighbors(&self, i: usize, j: usize) -> u8 {
         let size = self.size;
         self.current[Gol::idx(size, i - 1, j - 1)] as u8
             + self.current[Gol::idx(size, i - 1, j)] as u8
@@ -64,6 +75,29 @@ impl Gol {
                 self.next[Gol::idx(size, i, j)] = next_state;
             }
         }
+
+        self.swap_grids();
+    }
+
+    pub fn step_par(&mut self) {
+        let size = self.size;
+
+        self.next = (0..self.next.len())
+            .into_par_iter()
+            .map(|idx| {
+                let point = Gol::point(size, idx);
+
+                if point.x == 0 || point.x == size - 1 || point.y == 0 || point.y == size - 1 {
+                    return false;
+                }
+
+                let alive_neighbors = self.count_alive_neighbors(point.x, point.y);
+
+                let is_alive = self.current[Gol::idx(size, point.x, point.y)];
+
+                (is_alive && !(alive_neighbors < 2 || alive_neighbors > 3)) || (!is_alive && alive_neighbors == 3)
+            })
+            .collect();
 
         self.swap_grids();
     }

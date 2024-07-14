@@ -9,7 +9,7 @@ use std::time::Instant;
 
 use ml_gol::MlGol;
 
-const DEFAULT_GRID_SIZE: u32 = 128;
+const DEFAULT_GRID_SIZE: u32 = 512;
 const DEFAULT_NUM_LAYERS: u32 = 3;
 const DEFAULT_DENSITY: f32 = 0.3;
 const DEFAULT_NUM_STEPS: u32 = 64;
@@ -45,10 +45,17 @@ fn main() {
 
     println!("Starting Multilayer Game of Life.");
 
-    let tstart = Instant::now();
+    let num_steps = num_steps as usize;
 
+    let mut tstart = Instant::now();
     MlGol::new(grid_size, num_layers, density).start_game(num_steps);
+    let mut elapsed = tstart.elapsed();
 
-    let elapsed = tstart.elapsed();
-    println!("Elapsed time: {:.2?}", elapsed);
+    println!("Standard version, elapsed time: {:.2?}", elapsed);
+
+    tstart = Instant::now();
+    MlGol::new(grid_size, num_layers, density).start_game_par(num_steps);
+    elapsed = tstart.elapsed();
+
+    println!("Rayon version, elapsed time: {:.2?}", elapsed);
 }
