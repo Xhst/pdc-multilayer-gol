@@ -17,13 +17,17 @@ void write_png_file(const char* filename, uint32_t width, uint32_t height, uint8
 
     png_init_io(png, fp);
 
-    // Output is 8-bit depth, RGBA format.
+    // 8-bit depth
+    const int depth = 8;
+
+    // RGB format.
     png_set_IHDR(
         png,
         info,
-        width, height,
-        8,
-        PNG_COLOR_TYPE_RGBA,
+        width, 
+        height,
+        depth,
+        PNG_COLOR_TYPE_RGB,
         PNG_INTERLACE_NONE,
         PNG_COMPRESSION_TYPE_DEFAULT,
         PNG_FILTER_TYPE_DEFAULT

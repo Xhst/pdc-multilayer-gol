@@ -31,18 +31,18 @@ void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint3
 void create_png_for_grid(const color_t* grid, const uint32_t grid_size, const uint32_t step, const char* folder) {
     char filename[50];
 
-    // 4 channels: RGBA
-    uint8_t buffer[grid_size * grid_size * 4];
-
+    // 3 channels: RGB
+    const channels = 3;
+    uint8_t buffer[grid_size * grid_size * channels];
+    
     for (uint32_t i = 0; i < grid_size; i++) {
         for (uint32_t j = 0; j < grid_size; j++) {
-            uint32_t idx = (i * grid_size + j) * 4;
+            uint32_t idx = (i * grid_size + j) * channels;
             uint32_t grid_idx = i * grid_size + j;
 
             buffer[idx] = grid[grid_idx].r;
             buffer[idx + 1] = grid[grid_idx].g;
             buffer[idx + 2] = grid[grid_idx].b;
-            buffer[idx + 3] = 255;
         }
     }
 
