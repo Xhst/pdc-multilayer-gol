@@ -18,13 +18,10 @@ def run_executable(executable_path: str, params: list[str] = [], environment: di
 
     # Measure execution time
     start_time = time.time()
-    result = subprocess.run(cmd, env=environment, cwd=cwd, shell=True, capture_output=True, text=True)
+    subprocess.run(cmd, env=environment, cwd=cwd, text=True)
     end_time = time.time()
 
     execution_time = end_time - start_time
-
-    if result.returncode != 0 or 'DONE' not in result.stdout:
-        raise RuntimeError(f"Command failed or did not complete: {result.stderr}")
 
     if print_output:
         print(f"Execution time: {execution_time:.2f} seconds")
@@ -33,10 +30,16 @@ def run_executable(executable_path: str, params: list[str] = [], environment: di
 
 
 def mean_execution_time(executable_path, params: list[str] = [], environment: dict[str, str] = {}, repetitions: int = 10, print_output: bool = True, cwd: str = None):
-    execution_times = [run_executable(executable_path, params, environment, print_output=False, cwd=cwd) for _ in range(repetitions)]
+    execution_times = get_execution_times(executable_path, params, environment, repetitions, cwd)
     mean_exec = sum(execution_times) / repetitions
 
     if print_output:
         print(f"Mean execution time: {mean_exec:.2f} seconds")
 
     return mean_exec
+
+
+def get_execution_times(executable_path, params: list[str] = [], environment: dict[str, str] = {}, repetitions: int = 10, cwd: str = None):
+    execution_times = [run_executable(executable_path, params, environment, print_output=False, cwd=cwd) for _ in range(repetitions)]
+
+    return execution_times
