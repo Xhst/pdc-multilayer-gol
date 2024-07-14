@@ -18,7 +18,7 @@ def run_executable(executable_path: str, params: list[str] = [], environment: di
 
     # Measure execution time
     start_time = time.time()
-    subprocess.run(cmd, env=environment, cwd=cwd, text=True)
+    subprocess.run(cmd, env=environment, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     end_time = time.time()
 
     execution_time = end_time - start_time
