@@ -32,9 +32,10 @@ void create_png_for_grid(const color_t* grid, const uint32_t grid_size, const ui
     char filename[50];
 
     // 3 channels: RGB
-    const channels = 3;
+    const uint8_t channels = 3;
     uint8_t buffer[grid_size * grid_size * channels];
-    
+
+#pragma omp parallel for collapse(2)
     for (uint32_t i = 0; i < grid_size; i++) {
         for (uint32_t j = 0; j < grid_size; j++) {
             uint32_t idx = (i * grid_size + j) * channels;
