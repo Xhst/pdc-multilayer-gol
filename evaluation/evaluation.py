@@ -13,8 +13,6 @@ def run_executable(executable_path: str, params: list[str] = [], environment: di
         extra = ["wsl", "bash", "-c"]
 
     cmd = extra + [executable_path] + params
-    
-    print(f"Running command: {' '.join(cmd)}")
 
     # Measure execution time
     start_time = time.time()
