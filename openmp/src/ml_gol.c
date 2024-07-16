@@ -8,25 +8,22 @@ void start_game(const uint64_t grid_size, const uint64_t num_layers, const uint6
     ml_gol_t* ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
 
     init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
-#pragma omp parallel
-    {
-        for (uint64_t s = 0; s < num_steps; s++) {
-#pragma omp for
-            for (uint64_t i = 0; i < num_layers; i++) {
-                fill_ghost_cells(&ml_gol->layers[i]);
-                step(&ml_gol->layers[i]);
-                swap_grids(&ml_gol->layers[i]);
-            }
-            
-            calculate_combined(ml_gol);
-            calculate_dependent(ml_gol);
-
-            if (create_png) {
-                create_png_for_step(ml_gol, s);
-            }
-
-            reset_combined_and_dependent(ml_gol);
+    for (uint64_t s = 0; s < num_steps; s++) {
+#pragma omp parallel for
+        for (uint64_t i = 0; i < num_layers; i++) {
+            fill_ghost_cells(&ml_gol->layers[i]);
+            step(&ml_gol->layers[i]);
+            swap_grids(&ml_gol->layers[i]);
         }
+        
+        calculate_combined(ml_gol);
+        calculate_dependent(ml_gol);
+
+        if (create_png) {
+            create_png_for_step(ml_gol, s);
+        }
+
+        reset_combined_and_dependent(ml_gol);
     }
     
     free_ml_gol(ml_gol);
@@ -39,7 +36,7 @@ void create_png_for_grid(const color_t* grid, const uint64_t grid_size, const ui
     const uint8_t channels = 3;
     uint8_t* buffer = (uint8_t*) malloc(grid_size * grid_size * channels * sizeof(uint8_t));
 
-#pragma omp for collapse(2)
+#pragma omp parallel for collapse(2)
     for (uint64_t i = 0; i < grid_size; i++) {
         for (uint64_t j = 0; j < grid_size; j++) {
             uint64_t idx = (i * grid_size + j) * channels;
@@ -66,7 +63,7 @@ void create_png_for_step(const ml_gol_t* ml_gol, const uint64_t step) {
 }
 
 void reset_combined_and_dependent(ml_gol_t* ml_gol) {
-#pragma omp for collapse(2) 
+#pragma omp parallel for collapse(2) 
     for (uint64_t i = 0; i < ml_gol->grid_size; i++) {
         for (uint64_t j = 0; j < ml_gol->grid_size; j++) {
             uint64_t idx = i * ml_gol->grid_size + j;
@@ -125,7 +122,7 @@ color_t get_color_for_layer(const uint64_t layer, const uint64_t num_layers) {
 }
 
 void calculate_combined(const ml_gol_t* ml_gol) {
-#pragma omp for collapse(3)
+#pragma omp parallel for collapse(3)
     for (uint64_t k = 0; k < ml_gol->num_layers; k++) {         
         for (uint64_t i = 0; i < ml_gol->grid_size; i++) {
             for (uint64_t j = 0; j < ml_gol->grid_size; j++) {
@@ -158,7 +155,7 @@ uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, const uint64_t i
 }
 
 void calculate_dependent(const ml_gol_t* ml_gol) {
-#pragma omp for collapse(2)
+#pragma omp parallel for collapse(2)
     for (uint64_t i = 1; i < ml_gol->grid_size - 1; i++) {
         for (uint64_t j = 1; j < ml_gol->grid_size - 1; j++) {
             uint64_t idx = i * ml_gol->grid_size + j;
