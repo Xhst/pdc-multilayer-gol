@@ -21,7 +21,7 @@ BIN_DIR = bin
 CC = gcc
 
 # Compilation flags
-CFLAGS = -Wall -Wextra -I$(INC_DIR) $(shell pkg-config --cflags libpng) -lm -fopenmp
+CFLAGS = -Wall -Wextra -I$(INC_DIR) $(shell pkg-config --cflags libpng) -lm -fopenmp -O3 -march=native
 
 # Linker flags
 LDFLAGS = $(shell pkg-config --libs libpng) -lm -fopenmp
