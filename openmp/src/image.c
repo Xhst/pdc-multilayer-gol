@@ -3,7 +3,7 @@
 #include <png.h>
 #include <stdlib.h>
 
-void write_png_file(const char* filename, uint32_t width, uint32_t height, uint8_t* buffer) {
+void write_png_file(const char* filename, uint64_t width, uint64_t height, uint8_t* buffer) {
     FILE *fp = fopen(filename, "wb");
     if(!fp) {
         fprintf(stderr, "Could not open file %s for writing\n", filename);
@@ -48,7 +48,7 @@ void write_png_file(const char* filename, uint32_t width, uint32_t height, uint8
 
     png_bytep rows[height];
 
-    for(uint32_t y = 0; y < height; y++) {
+    for(uint64_t y = 0; y < height; y++) {
         rows[y] = &buffer[y * width * 3];
     }
 

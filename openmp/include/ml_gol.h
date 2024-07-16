@@ -16,10 +16,10 @@
  */
 typedef struct {
     gol_t* layers;
-    uint32_t num_layers;
+    uint64_t num_layers;
     color_t* combined;
     color_t* dependent;
-    uint32_t grid_size;
+    uint64_t grid_size;
 } ml_gol_t;
 
 /**
@@ -28,10 +28,11 @@ typedef struct {
  * @param grid_size Size of the grid
  * @param num_layers Number of layers
  * @param num_steps Number of steps
+ * @param use_png Flag to indicate if PNG files should be created
  * @param density Density of the grid
  * @param seed Seed for the random number generator
  */
-void start_game(uint32_t grid_size, uint32_t num_layers, uint32_t num_steps, float density, uint32_t seed);
+void start_game(uint64_t grid_size, uint64_t num_layers, uint64_t num_steps, bool use_png, float density, uint64_t seed);
 
 /**
  * @brief Initializes the multilayer game of life structure.
@@ -42,7 +43,7 @@ void start_game(uint32_t grid_size, uint32_t num_layers, uint32_t num_steps, flo
  * @param density Density of the grid
  * @param seed Seed for the random number generator
  */
-void init_ml_gol(ml_gol_t* ml_gol, uint32_t grid_size, uint32_t num_layers, float density, uint32_t seed);
+void init_ml_gol(ml_gol_t* ml_gol, uint64_t grid_size, uint64_t num_layers, float density, uint64_t seed);
 
 /**
  * @brief Calculates the combined grid from the layers of the multilayer game of life.
@@ -57,7 +58,7 @@ void calculate_combined(const ml_gol_t* ml_gol);
  * @param ml_gol The multilayer game of life structure
  * @param step The step number
  */
-void create_png_for_step(const ml_gol_t* ml_gol, uint32_t step);
+void create_png_for_step(const ml_gol_t* ml_gol, uint64_t step);
 
 /**
  * @brief Creates a PNG file for the given grid.
@@ -67,7 +68,7 @@ void create_png_for_step(const ml_gol_t* ml_gol, uint32_t step);
  * @param step The step number
  * @param folder The folder to save the PNG file
  */
-void create_png_for_grid(const color_t* grid, uint32_t grid_size, uint32_t step, const char* folder);
+void create_png_for_grid(const color_t* grid, uint64_t grid_size, uint64_t step, const char* folder);
 
 /**
  * @brief Resets the combined and dependent grids to black.
@@ -84,7 +85,7 @@ void reset_combined_and_dependent(ml_gol_t* ml_gol);
  * @param height The height of the image
  * @param buffer The buffer containing the image data
  */
-void write_png_file(const char* filename, uint32_t width, uint32_t height, uint8_t* buffer);
+void write_png_file(const char* filename, uint64_t width, uint64_t height, uint8_t* buffer);
 
 /**
  * @brief Calculates the dependent grid from the layers of the multilayer game of life.
@@ -100,7 +101,7 @@ void calculate_dependent(const ml_gol_t* ml_gol);
  * @param num_layers The total number of layers
  * @return The color for the layer
  */
-color_t get_color_for_layer(uint32_t layer, const uint32_t num_layers);
+color_t get_color_for_layer(uint64_t layer, const uint64_t num_layers);
 
 /**
  * @brief Prints the colors for the layers of the multilayer game of life.
@@ -117,7 +118,7 @@ void print_layers_colors(const ml_gol_t* ml_gol);
  * @param j The column index
  * @return The number of alive neighbors
  */
-uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, uint32_t i, uint32_t j);
+uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, uint64_t i, uint64_t j);
 
 /**
  * @brief Frees the memory allocated for the multilayer game of life structure.

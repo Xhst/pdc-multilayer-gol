@@ -4,14 +4,14 @@
 #include <stdio.h>
 
 
-void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint32_t num_steps, const bool create_png, const float density, const uint32_t seed) {
+void start_game(const uint64_t grid_size, const uint64_t num_layers, const uint64_t num_steps, const bool create_png, const float density, const uint64_t seed) {
     ml_gol_t* ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
 
     init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
 
-    for (uint32_t s = 0; s < num_steps; s++) {
+    for (uint64_t s = 0; s < num_steps; s++) {
     
-        for (uint32_t i = 0; i < num_layers; i++) {
+        for (uint64_t i = 0; i < num_layers; i++) {
             fill_ghost_cells(&ml_gol->layers[i]);
             step(&ml_gol->layers[i]);
             swap_grids(&ml_gol->layers[i]);
@@ -28,7 +28,7 @@ void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint3
     free_ml_gol(ml_gol);
 }
 
-void create_png_for_grid(const color_t* grid, const uint32_t grid_size, const uint32_t step, const char* folder) {
+void create_png_for_grid(const color_t* grid, const uint64_t grid_size, const uint64_t step, const char* folder) {
     char filename[50];
 
     // 3 channels: RGB
@@ -36,10 +36,10 @@ void create_png_for_grid(const color_t* grid, const uint32_t grid_size, const ui
     uint8_t buffer[grid_size * grid_size * channels];
 
 #pragma omp parallel for collapse(2)
-    for (uint32_t i = 0; i < grid_size; i++) {
-        for (uint32_t j = 0; j < grid_size; j++) {
-            uint32_t idx = (i * grid_size + j) * channels;
-            uint32_t grid_idx = i * grid_size + j;
+    for (uint64_t i = 0; i < grid_size; i++) {
+        for (uint64_t j = 0; j < grid_size; j++) {
+            uint64_t idx = (i * grid_size + j) * channels;
+            uint64_t grid_idx = i * grid_size + j;
 
             buffer[idx] = grid[grid_idx].r;
             buffer[idx + 1] = grid[grid_idx].g;
@@ -47,13 +47,13 @@ void create_png_for_grid(const color_t* grid, const uint32_t grid_size, const ui
         }
     }
 
-    sprintf(filename, "output/%s/%s%04d.png", folder, folder, step);
+    sprintf(filename, "output/%s/%s%04ld.png", folder, folder, step);
     write_png_file(filename, grid_size, grid_size, buffer);
 }
 
-void create_png_for_step(const ml_gol_t* ml_gol, const uint32_t step) {
+void create_png_for_step(const ml_gol_t* ml_gol, const uint64_t step) {
     // The grid size without the ghost cells
-    uint32_t grid_size = ml_gol->grid_size - 2;
+    uint64_t grid_size = ml_gol->grid_size - 2;
 
     create_png_for_grid(ml_gol->combined, grid_size, step, "combined");
     create_png_for_grid(ml_gol->dependent, grid_size, step, "dependent");
@@ -61,9 +61,9 @@ void create_png_for_step(const ml_gol_t* ml_gol, const uint32_t step) {
 
 void reset_combined_and_dependent(ml_gol_t* ml_gol) {
     
-    for (uint32_t i = 0; i < ml_gol->grid_size; i++) {
-        for (uint32_t j = 0; j < ml_gol->grid_size; j++) {
-            uint32_t idx = i * ml_gol->grid_size + j;
+    for (uint64_t i = 0; i < ml_gol->grid_size; i++) {
+        for (uint64_t j = 0; j < ml_gol->grid_size; j++) {
+            uint64_t idx = i * ml_gol->grid_size + j;
             ml_gol->combined[idx] = BLACK;
             ml_gol->dependent[idx] = BLACK;
         }
@@ -73,14 +73,14 @@ void reset_combined_and_dependent(ml_gol_t* ml_gol) {
 void print_layers_colors(const ml_gol_t* ml_gol) {
     char hex[8];
     printf("Colors for the layers:\n");
-    for (uint32_t i = 0; i < ml_gol->num_layers; i++) {
+    for (uint64_t i = 0; i < ml_gol->num_layers; i++) {
         color_t color = get_color_for_layer(i, ml_gol->num_layers);
         color_to_hex(color, hex);
-        printf("Layer %d: %s\n", i, hex);
+        printf("Layer %ld: %s\n", i, hex);
     }
 }
 
-void init_ml_gol(ml_gol_t* ml_gol, const uint32_t grid_size, const uint32_t num_layers, const float density, const uint32_t seed) {
+void init_ml_gol(ml_gol_t* ml_gol, const uint64_t grid_size, const uint64_t num_layers, const float density, const uint64_t seed) {
     srand(seed);
 
     ml_gol->num_layers = num_layers;
@@ -89,7 +89,7 @@ void init_ml_gol(ml_gol_t* ml_gol, const uint32_t grid_size, const uint32_t num_
     // size of the grid + 2 for the ghost cells
     ml_gol->grid_size = grid_size + 2;
 
-    for (uint32_t i = 0; i < ml_gol->num_layers; i++) {
+    for (uint64_t i = 0; i < ml_gol->num_layers; i++) {
         init_gol(&ml_gol->layers[i], ml_gol->grid_size, density);
     }
 
@@ -100,12 +100,12 @@ void init_ml_gol(ml_gol_t* ml_gol, const uint32_t grid_size, const uint32_t num_
 
     reset_combined_and_dependent(ml_gol);
 
-    printf("Initialized multilayer game of life with %d layers and grid size %d\n", num_layers, grid_size);
+    printf("Initialized multilayer game of life with %ld layers and grid size %ld\n", num_layers, grid_size);
     
     print_layers_colors(ml_gol);
 }
 
-color_t get_color_for_layer(const uint32_t layer, const uint32_t num_layers) {
+color_t get_color_for_layer(const uint64_t layer, const uint64_t num_layers) {
     // Calculate the angle for the hue based on the layer
     double hue = (360.0 * layer) / num_layers; 
 
@@ -118,13 +118,13 @@ color_t get_color_for_layer(const uint32_t layer, const uint32_t num_layers) {
 }
 
 void calculate_combined(const ml_gol_t* ml_gol) {
-    for (uint32_t k = 0; k < ml_gol->num_layers; k++) { 
+    for (uint64_t k = 0; k < ml_gol->num_layers; k++) { 
         color_t color = get_color_for_layer(k, ml_gol->num_layers);
         
 #pragma omp parallel for collapse(2)
-        for (uint32_t i = 0; i < ml_gol->grid_size; i++) {
-            for (uint32_t j = 0; j < ml_gol->grid_size; j++) {
-                uint32_t idx = i * ml_gol->grid_size + j;
+        for (uint64_t i = 0; i < ml_gol->grid_size; i++) {
+            for (uint64_t j = 0; j < ml_gol->grid_size; j++) {
+                uint64_t idx = i * ml_gol->grid_size + j;
 
                 if (!ml_gol->layers[k].current[idx]) continue;
 
@@ -134,14 +134,14 @@ void calculate_combined(const ml_gol_t* ml_gol) {
     }
 }
 
-uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, const uint32_t i, const uint32_t j) {
+uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, const uint64_t i, const uint64_t j) {
     uint8_t count = 0;
 
     for (int32_t x = -1; x <= 1; x++) {
         for (int32_t y = -1; y <= 1; y++) {
             if (x == 0 && y == 0) continue;
 
-            uint32_t idx = (i + x) * ml_gol->grid_size + (j + y);
+            uint64_t idx = (i + x) * ml_gol->grid_size + (j + y);
 
             if (ml_gol->combined[idx].r > 0 && ml_gol->combined[idx].g > 0 && ml_gol->combined[idx].b > 0) {
                 count++;
@@ -154,9 +154,9 @@ uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, const uint32_t i
 
 void calculate_dependent(const ml_gol_t* ml_gol) {
 #pragma omp parallel for collapse(2)
-    for (uint32_t i = 1; i < ml_gol->grid_size - 1; i++) {
-        for (uint32_t j = 1; j < ml_gol->grid_size - 1; j++) {
-            uint32_t idx = i * ml_gol->grid_size + j;
+    for (uint64_t i = 1; i < ml_gol->grid_size - 1; i++) {
+        for (uint64_t j = 1; j < ml_gol->grid_size - 1; j++) {
+            uint64_t idx = i * ml_gol->grid_size + j;
             
             uint8_t alive_neighbors = count_dependent_alive_neighbors(ml_gol, i, j);
 
@@ -169,7 +169,7 @@ void calculate_dependent(const ml_gol_t* ml_gol) {
 }
 
 void free_ml_gol(ml_gol_t* ml_gol) {
-    for (uint32_t i = 0; i < ml_gol->num_layers; i++) {
+    for (uint64_t i = 0; i < ml_gol->num_layers; i++) {
         free_gol(&ml_gol->layers[i]);
     }
 

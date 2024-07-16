@@ -26,23 +26,23 @@
 
 int main(int argc, char *argv[]) {
     
-    uint32_t grid_size = DEFAULT_GRID_SIZE;
-    uint32_t num_layers = DEFAULT_NUM_LAYERS;
-    uint32_t num_steps = DEFAULT_NUM_STEPS;
+    uint64_t grid_size = DEFAULT_GRID_SIZE;
+    uint64_t num_layers = DEFAULT_NUM_LAYERS;
+    uint64_t num_steps = DEFAULT_NUM_STEPS;
     bool create_png = DEFAULT_CREATE_PNG;
     float density = DEFAULT_DENSITY;
-    uint32_t seed = time(NULL);
+    uint64_t seed = time(NULL);
 
     if (argc > 1) {
-        grid_size = atouint32(argv[1]);
+        grid_size = atouint64(argv[1]);
     }
 
     if (argc > 2) {
-        num_layers = atouint32(argv[2]);
+        num_layers = atouint64(argv[2]);
     }
 
     if (argc > 3) {
-        num_steps = atouint32(argv[3]);
+        num_steps = atouint64(argv[3]);
     }
 
     if (argc > 4) {
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (argc > 6) {
-        seed = atouint32(argv[4]);
+        seed = atouint64(argv[4]);
     }
 
     if (grid_size == 0 || num_layers == 0 || num_steps == 0) {

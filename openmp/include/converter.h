@@ -7,12 +7,12 @@
 #include <errno.h>
 
 /**
- * @brief Converts a string to an unsigned 32-bit integer.
+ * @brief Converts a string to an unsigned 64-bit integer.
  * 
  * @param str The string to convert
- * @return The converted unsigned 32-bit integer
+ * @return The converted unsigned 64-bit integer
  */
-uint32_t atouint32(const char *str) {
+uint64_t atouint64(const char *str) {
     char *endptr;
 
     // Reset errno before calling strtoul
@@ -26,7 +26,7 @@ uint32_t atouint32(const char *str) {
         return 0;
     }
 
-    return (uint32_t) result;
+    return (uint64_t) result;
 }
 
 #endif

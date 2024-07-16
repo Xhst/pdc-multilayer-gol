@@ -16,7 +16,7 @@
 typedef struct {
     bool* current;
     bool* next;
-    uint32_t size;
+    uint64_t size;
 } gol_t;
 
 /**
@@ -26,7 +26,7 @@ typedef struct {
  * @param grid_size The size of the grid
  * @param density The density of the grid
  */
-void init_gol(gol_t *gol, uint32_t grid_size, float density);
+void init_gol(gol_t *gol, uint64_t grid_size, float density);
 
 /**
  * @brief Initializes the grid with the given density.
@@ -44,7 +44,7 @@ void init_grid(const gol_t* gol, float density);
  * @param j The column of the cell
  * @return The number of alive neighbors
  */
-uint8_t count_alive_neighbors(const gol_t* gol, uint32_t i, uint32_t j);
+uint8_t count_alive_neighbors(const gol_t* gol, uint64_t i, uint64_t j);
 
 /**
  * @brief Performs one step of the game of life.
@@ -82,7 +82,7 @@ void free_gol(gol_t* gol);
  * @param j The column of the cell
  * @return size_t The index of the cell
  */
-static inline size_t idx(const gol_t* gol, uint32_t i, uint32_t j) {
+static inline size_t idx(const gol_t* gol, uint64_t i, uint64_t j) {
     return i * gol->size + j;
 }
 
