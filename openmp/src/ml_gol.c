@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint32_t num_steps, const float density, const uint32_t seed) {
+void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint32_t num_steps, const bool create_png, const float density, const uint32_t seed) {
     ml_gol_t* ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
 
     init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
@@ -20,7 +20,7 @@ void start_game(const uint32_t grid_size, const uint32_t num_layers, const uint3
         calculate_combined(ml_gol);
         calculate_dependent(ml_gol);
 
-        create_png_for_step(ml_gol, s);
+        if (create_png) create_png_for_step(ml_gol, s);
 
         reset_combined_and_dependent(ml_gol);
     }
