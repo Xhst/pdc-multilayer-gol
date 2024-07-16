@@ -128,8 +128,6 @@ void calculate_combined(const ml_gol_t* ml_gol) {
             for (uint64_t j = 0; j < ml_gol->grid_size; j++) {
                 uint64_t idx = i * ml_gol->grid_size + j;
 
-                if (!ml_gol->layers[k].current[idx]) continue;
-
                 ml_gol->combined[idx] = add_colors(ml_gol->combined[idx], ml_gol->layers_colors[k]);
             }
         }
