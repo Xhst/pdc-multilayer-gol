@@ -17,6 +17,7 @@
 typedef struct {
     gol_t* layers;
     uint64_t num_layers;
+    color_t* layers_colors;
     color_t* combined;
     color_t* dependent;
     uint64_t grid_size;
