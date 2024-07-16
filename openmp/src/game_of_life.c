@@ -33,7 +33,6 @@ void swap_grids(gol_t* gol) {
 }
 
 void step(const gol_t* gol) {
-#pragma omp parallel for collapse(2)
     for (uint64_t i = 1; i < gol->size - 1; i++) {
         for (uint64_t j = 1; j < gol->size - 1; j++) {
 
@@ -52,14 +51,12 @@ void step(const gol_t* gol) {
 
 void fill_ghost_cells(const gol_t* gol) {
     // Left and right borders
-#pragma omp parallel for
     for (uint64_t i = 1; i < gol->size - 1; i++) {
         gol->current[idx(gol, i, 0)] = gol->current[idx(gol, i, gol->size - 2)];
         gol->current[idx(gol, i, gol->size - 1)] = gol->current[idx(gol, i, 1)];
     }
 
     // Top and bottom borders
-#pragma omp parallel for
     for (uint64_t j = 0; j < gol->size; j++) {
         gol->current[idx(gol, 0, j)] = gol->current[idx(gol, gol->size - 2, j)];
         gol->current[idx(gol, gol->size - 1, j)] = gol->current[idx(gol, 1, j)];
