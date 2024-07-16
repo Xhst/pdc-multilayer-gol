@@ -145,7 +145,7 @@ uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, const uint64_t i
 
             uint64_t idx = (i + x) * ml_gol->grid_size + (j + y);
 
-            if (ml_gol->combined[idx].r > 0 && ml_gol->combined[idx].g > 0 && ml_gol->combined[idx].b > 0) {
+            if (ml_gol->combined[idx].r == 255 && ml_gol->combined[idx].g == 255 && ml_gol->combined[idx].b == 255) {
                 count++;
             }
         }
