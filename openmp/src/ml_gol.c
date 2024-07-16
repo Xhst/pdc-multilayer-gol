@@ -76,8 +76,7 @@ void print_layers_colors(const ml_gol_t* ml_gol) {
     char hex[8];
     printf("Colors for the layers:\n");
     for (uint64_t i = 0; i < ml_gol->num_layers; i++) {
-        color_t color = get_color_for_layer(i, ml_gol->num_layers);
-        color_to_hex(color, hex);
+        color_to_hex(ml_gol->layers_colors[i], hex);
         printf("Layer %ld: %s\n", i, hex);
     }
 }
