@@ -21,7 +21,9 @@ void start_game(const uint64_t grid_size, const uint64_t num_layers, const uint6
             calculate_combined(ml_gol);
             calculate_dependent(ml_gol);
 
-            if (create_png) create_png_for_step(ml_gol, s);
+            if (create_png) {
+                create_png_for_step(ml_gol, s);
+            }
 
             reset_combined_and_dependent(ml_gol);
         }
@@ -35,7 +37,7 @@ void create_png_for_grid(const color_t* grid, const uint64_t grid_size, const ui
 
     // 3 channels: RGB
     const uint8_t channels = 3;
-    uint8_t buffer[grid_size * grid_size * channels];
+    uint8_t* buffer = (uint8_t*) malloc(grid_size * grid_size * channels * sizeof(uint8_t));
 
 #pragma omp for collapse(2)
     for (uint64_t i = 0; i < grid_size; i++) {
@@ -51,6 +53,8 @@ void create_png_for_grid(const color_t* grid, const uint64_t grid_size, const ui
 
     sprintf(filename, "output/%s/%s%04ld.png", folder, folder, step);
     write_png_file(filename, grid_size, grid_size, buffer);
+
+    free(buffer);
 }
 
 void create_png_for_step(const ml_gol_t* ml_gol, const uint64_t step) {
