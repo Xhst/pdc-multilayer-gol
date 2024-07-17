@@ -10,13 +10,13 @@ void start_game(const uint64_t grid_size, const uint64_t num_layers, const uint6
     init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
     for (uint64_t s = 0; s < num_steps; s++) {
 #pragma omp parallel for
-        for (uint64_t i = 0; i < num_layers; i++) {
-            fill_ghost_cells(&ml_gol->layers[i]);
-            step(&ml_gol->layers[i]);
-            swap_grids(&ml_gol->layers[i]);
+        for (uint64_t layer = 0; layer < num_layers; layer++) {
+            fill_ghost_cells(&ml_gol->layers[layer]);
+            step(&ml_gol->layers[layer]);
+            swap_grids(&ml_gol->layers[layer]);
         }
-        
-        calculate_combined(ml_gol);
+       
+        calculate_combined(ml_gol); 
         calculate_dependent(ml_gol);
 
         if (create_png) {
@@ -28,6 +28,19 @@ void start_game(const uint64_t grid_size, const uint64_t num_layers, const uint6
     
     free_ml_gol(ml_gol);
 }
+
+void calculate_combined(const ml_gol_t* ml_gol) {
+    // Calculate the combined grid
+    for (uint64_t layer = 0; layer < ml_gol->num_layers; layer++) {
+        for (uint64_t j = 0; j < ml_gol->grid_size * ml_gol->grid_size; j++) {
+            if (ml_gol->layers[layer].current[j]) {
+#pragma omp critical
+                ml_gol->combined[j] = add_colors(ml_gol->combined[j], ml_gol->layers_colors[layer]);
+            }
+        }
+    }
+}
+
 
 void create_png_for_grid(const color_t* grid, const uint64_t grid_size, const uint64_t step, const char* folder) {
     char filename[50];
@@ -111,7 +124,7 @@ void init_ml_gol(ml_gol_t* ml_gol, const uint64_t grid_size, const uint64_t num_
 
 color_t get_color_for_layer(const uint64_t layer, const uint64_t num_layers) {
     // Calculate the angle for the hue based on the layer
-    double hue = (360.0 * layer) / num_layers; 
+    double hue = (double) layer / num_layers * 360.0;
 
     color_hsv_t hsv_color;
     hsv_color.h = hue;
@@ -119,19 +132,6 @@ color_t get_color_for_layer(const uint64_t layer, const uint64_t num_layers) {
     hsv_color.v = 1.0;
 
     return hsv_to_rgb(hsv_color);
-}
-
-void calculate_combined(const ml_gol_t* ml_gol) {
-#pragma omp parallel for collapse(3)
-    for (uint64_t k = 0; k < ml_gol->num_layers; k++) {         
-        for (uint64_t i = 0; i < ml_gol->grid_size; i++) {
-            for (uint64_t j = 0; j < ml_gol->grid_size; j++) {
-                uint64_t idx = i * ml_gol->grid_size + j;
-
-                ml_gol->combined[idx] = add_colors(ml_gol->combined[idx], ml_gol->layers_colors[k]);
-            }
-        }
-    }
 }
 
 uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, const uint64_t i, const uint64_t j) {
@@ -143,8 +143,10 @@ uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, const uint64_t i
 
             uint64_t idx = (i + x) * ml_gol->grid_size + (j + y);
 
-            if (ml_gol->combined[idx].r == 255 && ml_gol->combined[idx].g == 255 && ml_gol->combined[idx].b == 255) {
-                count++;
+            for (uint64_t layer = 0; layer < ml_gol->num_layers; layer++) {
+                if (ml_gol->layers[layer].current[idx]) {
+                    count++;
+                }
             }
         }
     }
