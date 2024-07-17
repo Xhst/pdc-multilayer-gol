@@ -5,9 +5,9 @@
 
 color_t add_colors(const color_t c1, const color_t c2) {
     color_t result;
-    result.r = (c1.r + c2.r) % 256;
-    result.g = (c1.g + c2.g) % 256;
-    result.b = (c1.b + c2.b) % 256;
+    result.r = (c1.r + c2.r) > 255 ? 255 : c1.r + c2.r;
+    result.g = (c1.g + c2.g) > 255 ? 255 : c1.g + c2.g;
+    result.b = (c1.b + c2.b) > 255 ? 255 : c1.b + c2.b;
     return result;
 }
 
