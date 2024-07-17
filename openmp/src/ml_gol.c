@@ -30,9 +30,11 @@ void start_game(const uint64_t grid_size, const uint64_t num_layers, const uint6
 }
 
 void calculate_combined(const ml_gol_t* ml_gol) {
-    // Calculate the combined grid
+#pragma omp parallel for
     for (uint64_t layer = 0; layer < ml_gol->num_layers; layer++) {
         for (uint64_t j = 0; j < ml_gol->grid_size * ml_gol->grid_size; j++) {
+
+            // If the cell is alive in the current layer, add the color of the layer to the combined grid
             if (ml_gol->layers[layer].current[j]) {
 #pragma omp critical
                 ml_gol->combined[j] = add_colors(ml_gol->combined[j], ml_gol->layers_colors[layer]);
