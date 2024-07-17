@@ -7,8 +7,8 @@
 void start_game(const uint64_t grid_size, const uint64_t num_layers, const uint64_t num_steps, const bool create_png, const float density, const uint64_t seed) {
     ml_gol_t* ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
 
-    init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
-    for (uint64_t s = 0; s < num_steps; s++) {
+    init_ml_gol(ml_gol, grid_size, num_layers, create_png, density, seed);
+    for (uint64_t s = 1; s < num_steps; s++) {
 #pragma omp parallel for
         for (uint64_t layer = 0; layer < num_layers; layer++) {
             fill_ghost_cells(&ml_gol->layers[layer]);
@@ -97,7 +97,7 @@ void print_layers_colors(const ml_gol_t* ml_gol) {
     }
 }
 
-void init_ml_gol(ml_gol_t* ml_gol, const uint64_t grid_size, const uint64_t num_layers, const float density, const uint64_t seed) {
+void init_ml_gol(ml_gol_t* ml_gol, const uint64_t grid_size, const uint64_t num_layers, const bool create_png, const float density, const uint64_t seed) {
     srand(seed);
 
     ml_gol->num_layers = num_layers;
@@ -116,6 +116,13 @@ void init_ml_gol(ml_gol_t* ml_gol, const uint64_t grid_size, const uint64_t num_
 
     ml_gol->combined = (color_t*) malloc(size * sizeof(color_t));
     ml_gol->dependent = (color_t*) malloc(size * sizeof(color_t));
+
+    calculate_combined(ml_gol); 
+    calculate_dependent(ml_gol);
+
+    if (create_png) {
+        create_png_for_step(ml_gol, 0);
+    }
 
     reset_combined_and_dependent(ml_gol);
 

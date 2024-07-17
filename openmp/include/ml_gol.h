@@ -41,10 +41,11 @@ void start_game(uint64_t grid_size, uint64_t num_layers, uint64_t num_steps, boo
  * @param ml_gol The multilayer game of life structure
  * @param grid_size Size of the grid
  * @param num_layers Number of layers
+ * @param create_png Flag to indicate if PNG files should be created
  * @param density Density of the grid
  * @param seed Seed for the random number generator
  */
-void init_ml_gol(ml_gol_t* ml_gol, uint64_t grid_size, uint64_t num_layers, float density, uint64_t seed);
+void init_ml_gol(ml_gol_t* ml_gol, uint64_t grid_size, uint64_t num_layers, bool create_png, float density, uint64_t seed);
 
 /**
  * @brief Calculates the combined grid from the layers of the multilayer game of life.
