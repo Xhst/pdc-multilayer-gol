@@ -51,7 +51,7 @@ uint8_t count_alive_neighbors(const gol_t* gol, uint64_t i, uint64_t j);
  * 
  * @param gol The game of life structure
  */
-void step(const gol_t* gol);
+void step(gol_t* gol);
 
 /**
  * @brief Swaps the current and next grids.
@@ -83,7 +83,7 @@ void free_gol(gol_t* gol);
  * @return size_t The index of the cell
  */
 static inline size_t idx(const gol_t* gol, uint64_t i, uint64_t j) {
-    return i * gol->size + j;
+    return i * (gol->size + 2) + j;
 }
 
 #endif

@@ -2,9 +2,10 @@
 
 
 void init_gol(gol_t* gol, const uint64_t grid_size, const float density) {
+    gol->size = grid_size;
+
     // size of the grid + 2 for the ghost cells
-    gol->size = grid_size + 2;
-    size_t size = (gol->size) * (gol->size) * sizeof(bool);
+    size_t size = (gol->size + 2) * (gol->size + 2) * sizeof(bool);
 
     gol->current = (bool*) malloc(size);
     gol->next = (bool*) malloc(size);
@@ -13,9 +14,9 @@ void init_gol(gol_t* gol, const uint64_t grid_size, const float density) {
 }
 
 void init_grid(const gol_t* gol, const float density) {
-    for (uint64_t i = 1; i < gol->size - 1; i++) {
-        for (uint64_t j = 1; j < gol->size - 1; j++) {
-            gol->current[idx(gol, i, j)] = (((float) rand()) / RAND_MAX) < density;
+    for (uint64_t i = 1; i < gol->size + 1; i++) {
+        for (uint64_t j = 1; j < gol->size + 1; j++) {
+            gol->current[idx(gol, i, j)] = ((float) rand() / RAND_MAX) < density;
         }
     }
 }
@@ -32,9 +33,11 @@ void swap_grids(gol_t* gol) {
     gol->next = temp;
 }
 
-void step(const gol_t* gol) {
-    for (uint64_t i = 1; i < gol->size - 1; i++) {
-        for (uint64_t j = 1; j < gol->size - 1; j++) {
+void step(gol_t* gol) {
+    fill_ghost_cells(gol);
+
+    for (uint64_t i = 1; i < gol->size + 1; i++) {
+        for (uint64_t j = 1; j < gol->size + 1; j++) {
 
             uint8_t alive_neighbors = count_alive_neighbors(gol, i, j);
 
@@ -47,26 +50,37 @@ void step(const gol_t* gol) {
             gol->next[idx(gol, i, j)] = next_state;
         }
     }
+
+    swap_grids(gol);
 }
 
 void fill_ghost_cells(const gol_t* gol) {
+    const uint64_t TOP = 1;
+    const uint64_t BOTTOM = gol->size - 1;
+    const uint64_t LEFT = 1;
+    const uint64_t RIGHT = gol->size - 1;
+    const uint64_t HALO_TOP = TOP - 1;
+    const uint64_t HALO_BOTTOM = BOTTOM + 1;
+    const uint64_t HALO_LEFT = LEFT - 1;
+    const uint64_t HALO_RIGHT = RIGHT + 1;
+
     // Left and right borders
-    for (uint64_t i = 1; i < gol->size - 1; i++) {
-        gol->current[idx(gol, i, 0)] = gol->current[idx(gol, i, gol->size - 2)];
-        gol->current[idx(gol, i, gol->size - 1)] = gol->current[idx(gol, i, 1)];
+    for (uint64_t i = TOP; i < BOTTOM + 1; i++) {
+        gol->current[idx(gol, i, HALO_LEFT)]  = gol->current[idx(gol, i, RIGHT)];
+        gol->current[idx(gol, i, HALO_RIGHT)] = gol->current[idx(gol, i, LEFT)];
     }
 
     // Top and bottom borders
-    for (uint64_t j = 0; j < gol->size; j++) {
-        gol->current[idx(gol, 0, j)] = gol->current[idx(gol, gol->size - 2, j)];
-        gol->current[idx(gol, gol->size - 1, j)] = gol->current[idx(gol, 1, j)];
+    for (uint64_t j = LEFT; j < RIGHT + 1; j++) {
+        gol->current[idx(gol, HALO_TOP, j)]    = gol->current[idx(gol, BOTTOM, j)];
+        gol->current[idx(gol, HALO_BOTTOM, j)] = gol->current[idx(gol, TOP, j)];
     }
     
     // Corners
-    gol->current[idx(gol, 0, 0)] = gol->current[idx(gol, gol->size - 2, gol->size - 2)];
-    gol->current[idx(gol, 0, gol->size - 1)] = gol->current[idx(gol, gol->size - 2, 1)];
-    gol->current[idx(gol, gol->size - 1, 0)] = gol->current[idx(gol, 1, gol->size - 2)];
-    gol->current[idx(gol, gol->size - 1, gol->size - 1)] = gol->current[idx(gol, 1, 1)];
+    gol->current[idx(gol, HALO_TOP, HALO_LEFT)]     = gol->current[idx(gol, BOTTOM, RIGHT)];
+    gol->current[idx(gol, HALO_TOP, HALO_RIGHT)]    = gol->current[idx(gol, BOTTOM, LEFT)];
+    gol->current[idx(gol, HALO_BOTTOM, HALO_LEFT)]  = gol->current[idx(gol, TOP, RIGHT)];
+    gol->current[idx(gol, HALO_BOTTOM, HALO_RIGHT)] = gol->current[idx(gol, TOP, LEFT)];
 }
 
 void free_gol(gol_t* gol) {
