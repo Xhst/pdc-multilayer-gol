@@ -142,8 +142,6 @@ uint8_t count_dependent_alive_neighbors(const ml_gol_t* ml_gol, const uint64_t i
 
     for (int32_t x = -1; x <= 1; x++) {
         for (int32_t y = -1; y <= 1; y++) {
-            if (x == 0 && y == 0) continue;
-
             uint64_t layer_idx = idx(&ml_gol->layers[0], i + x, j + y);
 
             for (uint64_t layer = 0; layer < ml_gol->num_layers; layer++) {
@@ -165,7 +163,7 @@ void calculate_dependent(const ml_gol_t* ml_gol) {
             
             uint8_t alive_neighbors = count_dependent_alive_neighbors(ml_gol, i, j);
 
-            uint8_t channel_value = (uint8_t) ((((float) alive_neighbors) / 8) * 255);
+            uint8_t channel_value = (uint8_t) ((((float) alive_neighbors) / 9) * 255);
             
             ml_gol->dependent[idx] = (color_t){channel_value, channel_value, channel_value};
             
