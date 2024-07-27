@@ -10,17 +10,18 @@
  * ./bin/multilayer-game-of-life <grid_size> <num_layers> <density> <num_steps> <seed>
  * The parameters are optional, if not provided, the default values are used.
  */
+
+extern "C" {
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include <omp.h>
-
-
-#include "vector_add.cuh"
-
 
 #include "converter.h"
-#include "ml_gol.h"
+
+}
+
+#include "ml_gol.cuh"
 
 #define DEFAULT_GRID_SIZE 128
 #define DEFAULT_NUM_LAYERS 3
@@ -66,66 +67,10 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    
+    printf("Starting Multilayer Game of Life on CUDA\n");
 
-    /*####################################################################
-    ########################    CUDA TEST   ##############################
-    ######################################################################*/
-
-    float *h_a, *h_b, *h_c; // host copies of a, b, c
-    float *d_a, *d_b, *d_c; // device copies of a, b, c
-    int size = N * sizeof(float);
-
-    // Allocate space for device copies of a, b, c
-    cudaMalloc((void **)&d_a, size);
-    cudaMalloc((void **)&d_b, size);
-    cudaMalloc((void **)&d_c, size);
-
-    // Allocate space for host copies of a, b, c and setup input values
-    h_a = (float *)malloc(size);
-    h_b = (float *)malloc(size);
-    h_c = (float *)malloc(size);
-    for (int i = 0; i < N; i++) {
-        h_a[i] = i;
-        h_b[i] = i * 2;
-    }
-
-    // Copy inputs to device
-    cudaMemcpy(d_a, h_a, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_b, h_b, size, cudaMemcpyHostToDevice);
-
-    // Launch vectorAdd() kernel on GPU with N blocks
-    vectorAdd<<<(N + 255) / 256, 256>>>(d_a, d_b, d_c, N);
-
-    // Copy result back to host
-    cudaMemcpy(h_c, d_c, size, cudaMemcpyDeviceToHost);
-
-    // Print the result
-    for (int i = 0; i < N; i++) {
-        if (i % 100 == 0) {
-            printf("h_c[%d] = %f\n", i, h_c[i]);
-        }
-    }
-
-    // Cleanup
-    free(h_a);
-    free(h_b);
-    free(h_c);
-    cudaFree(d_a);
-    cudaFree(d_b);
-    cudaFree(d_c);
-
-    /* 
-    printf("Starting Multilayer Game of Life.\n");
-    printf("Max num of threads: %d\n",  omp_get_max_threads());
-
-    double tstart, tstop;
-    tstart = omp_get_wtime();
-
-    start_game(grid_size, num_layers, num_steps, create_png, density, seed);
-
-    tstop = omp_get_wtime();
-    printf("Elapsed time: %f\n", tstop - tstart); 
-    */
+    start_game_on_cuda(grid_size, num_layers, num_steps, create_png, density, seed);
 
     return EXIT_SUCCESS;
 }
