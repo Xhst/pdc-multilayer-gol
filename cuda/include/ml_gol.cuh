@@ -7,11 +7,6 @@
 #include "color.h"
 
 /**
- * @brief Structure to represent an array of bool values for the same GoL cell in different layers.
-*/
-typedef bool* ml_cell_t;
-
-/**
  * @brief Structure to represent the multilayer game of life.
  * 
  * The multilayer game of life is represented by an array of game of life structures (layers).
@@ -21,8 +16,8 @@ typedef bool* ml_cell_t;
  * The current and next field represent the multilayer game of life as a matrix of arrays. Each element (cell) of the matrix is an array of bool, one for each layer.
  */
 typedef struct {
-    ml_cell_t* current;
-    ml_cell_t* next;
+    bool* current;
+    bool* next;
     uint64_t num_layers;
     color_t* layers_colors;
     color_t* combined;
@@ -43,6 +38,18 @@ typedef struct {
 void start_game_on_cuda(uint64_t grid_size, uint64_t num_layers, uint64_t num_steps, bool use_png, float density, uint64_t seed);
 
 /**
+ * @brief Initializes the multilayer game of life structure on CPU and GPU using Unified Memory.
+ * 
+ * @param ml_gol The multilayer game of life structure
+ * @param grid_size Size of the grid
+ * @param num_layers Number of layers
+ * @param create_png Flag to indicate if PNG files should be created
+ * @param density Density of the grid
+ * @param seed Seed for the random number generator
+ */
+void init_ml_gol_managed(ml_gol_t* ml_gol, uint64_t grid_size, uint64_t num_layers, float density, uint64_t seed);
+
+/**
  * @brief Initializes the multilayer game of life structure.
  * 
  * @param ml_gol The multilayer game of life structure
@@ -60,15 +67,11 @@ void init_ml_gol(ml_gol_t* ml_gol, uint64_t grid_size, uint64_t num_layers, floa
  * @param d_ml_gol The structure on the device
  * @param ml_gol The already allocated structure on the host
 */
-void load_ml_gol_to_device(ml_gol_t* d_ml_gol, const ml_gol_t* ml_gol);
+void init_ml_gol_to_device(const ml_gol_t* ml_gol, bool** d_current, bool** d_next, color_t** d_layers_colors, color_t** d_combined, color_t** d_dependent);
 
-/**
- * @brief Allocates and copies ml_gol structure from host to device
- * 
- * @param d_ml_gol The structure on the device
- * @param ml_gol The already allocated structure on the host
-*/
-void init_ml_gol_to_device(ml_gol_t* d_ml_gol, const ml_gol_t* ml_gol);
+void update_d_ml_gol(const ml_gol_t* ml_gol, bool** d_current, bool** d_next, color_t** d_combined, color_t** d_dependent);
+
+void copy_back_to_host(const ml_gol_t* ml_gol, bool** d_current, bool** d_next, color_t** d_combined, color_t** d_dependent);
 
 /**
  * @brief Fills ghost cells in all layers of the multilayer game of life
@@ -131,12 +134,17 @@ void swap_grids(ml_gol_t* ml_gol);
 __host__ __device__ size_t idx(const ml_gol_t* ml_gol, uint64_t i, uint64_t j);
 
 /**
+ * @brief A function to calculate the grid idx (layer independent) from host or device for a flat cell structure
+ */
+__host__ __device__ size_t idx_flat(const ml_gol_t* ml_gol, uint64_t i, uint64_t j, uint64_t layer);
+
+/**
  * @brief The kernel to calculate the multilayer GoL on the device 
  * 
  * @param ml_gol The structure of ml GoL
  * @param num_steps The number of steps to perform
  */
-__global__ void ml_gol_kernel(ml_gol_t* ml_gol, uint64_t num_steps);
+__global__ void ml_gol_kernel(bool* d_current, bool* d_next, color_t* d_layers_colors, color_t* d_combined, color_t* d_dependent, uint64_t grid_size, uint64_t num_layers);
 
 /**
  * @brief Counts the number of alive neighbors of a cell in a layer.
@@ -149,11 +157,5 @@ __global__ void ml_gol_kernel(ml_gol_t* ml_gol, uint64_t num_steps);
  */
 __device__ uint8_t count_layer_alive_neighbors(const ml_gol_t* ml_gol, uint64_t i, uint64_t j, uint64_t layer);
 
-/**
- * @brief Performs one step of the game of life.
- * 
- * @param ml_gol The game of life structure
- */
-__device__ void step(ml_gol_t* ml_gol);
 
 #endif

@@ -27,12 +27,17 @@ extern "C" {
 
 void start_game_on_cuda(const uint64_t grid_size, const uint64_t num_layers, const uint64_t num_steps, const bool create_png, const float density, const uint64_t seed) {
     ml_gol_t* ml_gol;
-    cudaMallocManaged(&ml_gol, sizeof(ml_gol_t));
+    ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
     init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
+    /* cudaMallocManaged(&ml_gol, sizeof(ml_gol_t));
+    init_ml_gol_managed(ml_gol, grid_size, num_layers, density, seed); */
     
-    /* ml_gol_t* d_ml_gol;
-    init_ml_gol_to_device(d_ml_gol, ml_gol); */
-
+    bool* d_current = nullptr;
+    bool* d_next = nullptr;
+    color_t* d_layers_colors = nullptr;
+    color_t* d_combined = nullptr;
+    color_t* d_dependent = nullptr;
+    init_ml_gol_to_device(ml_gol, &d_current, &d_next, &d_layers_colors, &d_combined, &d_dependent); 
     
     //TODO: BISOGNA CAPIRE SE VANNO CONSIDERATE LE GHOST CELLS NELLE DIMENSIONI DELLA GRIGLIA E DEL BLOCCO
     dim3 gridDim((grid_size + BLKDIM - 1) / BLKDIM, (grid_size + BLKDIM - 1) / BLKDIM);
@@ -40,10 +45,13 @@ void start_game_on_cuda(const uint64_t grid_size, const uint64_t num_layers, con
 
     for (uint64_t s = 1; s < num_steps; s++) {
         fill_ghost_cells(ml_gol);
-                
-        ml_gol_kernel<<<gridDim, blockDim>>>(ml_gol, num_steps); cudaCheckError();
-        cudaDeviceSynchronize();
+        
+        update_d_ml_gol(ml_gol, &d_current, &d_next, &d_combined, &d_dependent);
 
+        ml_gol_kernel<<<gridDim, blockDim>>>(d_current, d_next, d_layers_colors, d_combined, d_dependent, grid_size, num_layers); cudaCheckError();
+        cudaDeviceSynchronize();
+        copy_back_to_host(ml_gol, &d_current, &d_next, &d_combined, &d_dependent);
+    
         swap_grids(ml_gol);
 
         if (create_png) {
@@ -58,29 +66,23 @@ void start_game_on_cuda(const uint64_t grid_size, const uint64_t num_layers, con
     //free_ml_gol(ml_gol, d_ml_gol);
 }
 
-void init_ml_gol(ml_gol_t* ml_gol, const uint64_t grid_size, const uint64_t num_layers, const float density, const uint64_t seed) {
+void init_ml_gol_managed(ml_gol_t* ml_gol, const uint64_t grid_size, const uint64_t num_layers, const float density, const uint64_t seed) {
     srand(seed);
 
     ml_gol->num_layers = num_layers;
     ml_gol->grid_size = grid_size;
 
-    uint64_t gol_grids_size = (grid_size + 2) * (grid_size + 2);
-    cudaMallocManaged(&ml_gol->current, gol_grids_size * sizeof(ml_cell_t));
-    cudaMallocManaged(&ml_gol->next, gol_grids_size * sizeof(ml_cell_t));
+    uint64_t gol_grids_size = (grid_size + 2) * (grid_size + 2) * num_layers;
+    cudaMallocManaged(&ml_gol->current, gol_grids_size * sizeof(bool));
+    cudaMallocManaged(&ml_gol->next, gol_grids_size * sizeof(bool));
 
-    // allocate cells
-    for (uint64_t i = 0; i < gol_grids_size; i++) {
-        cudaMallocManaged(&(ml_gol->current[i]), num_layers * sizeof(bool));
-        cudaMallocManaged(&(ml_gol->next[i]), num_layers * sizeof(bool));
-    }
 
     // init non ghost cells
     for (uint64_t i = 1; i < grid_size + 1; i++) {
         for (uint64_t j = 1; j < grid_size + 1; j++) {
-            size_t cell_idx = idx(ml_gol, i, j);
-
             for (uint16_t l = 0; l < ml_gol->num_layers; l++) {
-                ml_gol->current[cell_idx][l] = ((float) rand() / RAND_MAX) < density;
+                size_t cell_idx = idx_flat(ml_gol, i, j, l);
+                ml_gol->current[cell_idx] = ((float) rand() / RAND_MAX) < density;
             }
         }
     }
@@ -102,37 +104,81 @@ void init_ml_gol(ml_gol_t* ml_gol, const uint64_t grid_size, const uint64_t num_
     print_layers_colors(ml_gol);
 }
 
-/* void init_ml_gol_to_device(color_t* layers_colors, ml_cell_t* current, ml_cell_t* next, color_t* combined, color_t* dependent, const ml_gol_t* ml_gol) {
+void init_ml_gol(ml_gol_t* ml_gol, const uint64_t grid_size, const uint64_t num_layers, const float density, const uint64_t seed) {
+    srand(seed);
 
-    // array fields
-    cudaMalloc((void**)&current, (ml_gol->grid_size + 2) * (ml_gol->grid_size + 2) * sizeof(ml_cell_t));
-    cudaMalloc((void**)&next, (ml_gol->grid_size + 2) * (ml_gol->grid_size + 2) * sizeof(ml_cell_t));
+    ml_gol->num_layers = num_layers;
+    ml_gol->grid_size = grid_size;
 
-    for (uint64_t i = 0; i < (ml_gol->grid_size + 2) * (ml_gol->grid_size + 2); i++) {
-        cudaMalloc((void**)&(current[i]), ml_gol->num_layers * sizeof(bool));
-        cudaMalloc((void**)&(next[i]), ml_gol->num_layers * sizeof(bool));
+    uint64_t gol_grids_size = (grid_size + 2) * (grid_size + 2) * num_layers;
+    ml_gol->current = (bool*) malloc(gol_grids_size * sizeof(bool));
+    ml_gol->next = (bool*) malloc(gol_grids_size * sizeof(bool));
 
-        // copy pointer
-        cudaMemcpy(&(d_ml_gol->current[i]), &(current[i]), sizeof(bool*), cudaMemcpyHostToDevice);
-        cudaMemcpy(&(d_ml_gol->next[i]), &(next[i]), sizeof(bool*), cudaMemcpyHostToDevice);
-
-        // now we can finally copy the data
-        cudaMemcpy(current[i], ml_gol->current[i], ml_gol->num_layers * sizeof(bool), cudaMemcpyHostToDevice);
+    // init non ghost cells
+    for (uint64_t i = 1; i < grid_size + 1; i++) {
+        for (uint64_t j = 1; j < grid_size + 1; j++) {
+            for (uint16_t l = 0; l < ml_gol->num_layers; l++) {
+                size_t cell_idx = idx_flat(ml_gol, i, j, l);
+                ml_gol->current[cell_idx]= ((float) rand() / RAND_MAX) < density;
+            }
+        }
     }
 
-    // layers colors
-    cudaMalloc((void**)&layers_colors, ml_gol->num_layers * sizeof(color_t));
-    cudaMemcpy(layers_colors, ml_gol->layers_colors, ml_gol->num_layers * sizeof(color_t), cudaMemcpyHostToDevice);
+    ml_gol->layers_colors = (color_t*) malloc(num_layers * sizeof(color_t));
+    for (uint64_t i = 0; i < ml_gol->num_layers; i++) {
+        ml_gol->layers_colors[i] = get_color_for_layer(i, num_layers);
+    }
+
+    size_t size = (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t);
+
+    ml_gol->combined = (color_t*) malloc(size);
+    ml_gol->dependent = (color_t*) malloc(size);
+
+    printf("Initialized multilayer game of life with %ld layers and grid size %ld\n", num_layers, grid_size);
+    
+    print_layers_colors(ml_gol);
+}
+
+void init_ml_gol_to_device(const ml_gol_t* ml_gol, bool** d_current, bool** d_next, color_t** d_layers_colors, color_t** d_combined, color_t** d_dependent) {
+    // cuurent & next
+    uint64_t gols_grid_size = (ml_gol->grid_size + 2) * (ml_gol->grid_size + 2) * ml_gol->num_layers;
+
+    cudaSafeCall( cudaMalloc((void**)(d_current), gols_grid_size * sizeof(bool)));
+    cudaSafeCall( cudaMalloc((void**)(d_next), gols_grid_size * sizeof(bool)));
+
+    // layers colors (we copy the colors here becuase they never change)
+    cudaSafeCall( cudaMalloc((void**)(d_layers_colors), ml_gol->num_layers * sizeof(color_t)));
+    cudaSafeCall( cudaMemcpy(*d_layers_colors, ml_gol->layers_colors, ml_gol->num_layers * sizeof(color_t), cudaMemcpyHostToDevice));
+    
+    // combined and dependent
+    cudaSafeCall( cudaMalloc((void**)(d_combined), (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t)));
+    cudaSafeCall( cudaMalloc((void**)(d_dependent), (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t)));
+}
+
+void update_d_ml_gol(const ml_gol_t* ml_gol, bool** d_current, bool** d_next, color_t** d_combined, color_t** d_dependent) {
+
+    // current & next
+    uint64_t gols_grid_size = (ml_gol->grid_size + 2) * (ml_gol->grid_size + 2) * ml_gol->num_layers;
+
+    cudaSafeCall( cudaMemcpy(*d_current, ml_gol->current, gols_grid_size * sizeof(bool), cudaMemcpyHostToDevice));
+    cudaSafeCall( cudaMemcpy(*d_next, ml_gol->next, gols_grid_size * sizeof(bool), cudaMemcpyHostToDevice));
 
     // combined and dependent
-    cudaMalloc((void**)&combined, (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t));
-    cudaMalloc((void**)&dependent, (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t));
-    cudaMemcpy(&(d_ml_gol->combined), &combined, sizeof(color_t*), cudaMemcpyHostToDevice);
-    cudaMemcpy(&(d_ml_gol->dependent), &dependent, sizeof(color_t*), cudaMemcpyHostToDevice);
-    cudaMemcpy(combined, ml_gol->combined, (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t), cudaMemcpyHostToDevice);
-    cudaMemcpy(dependent, ml_gol->dependent, (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t), cudaMemcpyHostToDevice);
-} */
+    cudaSafeCall( cudaMemcpy(*d_combined, ml_gol->combined, (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t), cudaMemcpyHostToDevice));
+    cudaSafeCall( cudaMemcpy(*d_dependent, ml_gol->dependent, (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t), cudaMemcpyHostToDevice));
+}
 
+void copy_back_to_host(const ml_gol_t* ml_gol, bool** d_current, bool** d_next, color_t** d_combined, color_t** d_dependent) {
+    // current & next
+    uint64_t gols_grid_size = (ml_gol->grid_size + 2) * (ml_gol->grid_size + 2) * ml_gol->num_layers;
+
+    cudaSafeCall( cudaMemcpy(ml_gol->current, *d_current, gols_grid_size * sizeof(bool), cudaMemcpyDeviceToHost));
+    cudaSafeCall( cudaMemcpy(ml_gol->next, *d_next, gols_grid_size * sizeof(bool), cudaMemcpyDeviceToHost));
+
+    // combined and dependent
+    cudaSafeCall( cudaMemcpy(ml_gol->combined, *d_combined, (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t), cudaMemcpyDeviceToHost));
+    cudaSafeCall( cudaMemcpy(ml_gol->dependent, *d_dependent, (ml_gol->grid_size) * (ml_gol->grid_size) * sizeof(color_t), cudaMemcpyDeviceToHost));
+}
 
 void create_png_for_step(const ml_gol_t* ml_gol, const uint64_t step) {
     create_png_for_grid(ml_gol->combined, ml_gol->grid_size, step, "combined");
@@ -191,21 +237,21 @@ void fill_ghost_cells(ml_gol_t* ml_gol) {
     for (uint64_t l = 0; l < ml_gol->num_layers; l++) {
         // Left and right borders
         for (uint64_t i = TOP; i < BOTTOM + 1; i++) {
-            ml_gol->current[idx(ml_gol, i, HALO_LEFT)][l]  = ml_gol->current[idx(ml_gol, i, RIGHT)][l];
-            ml_gol->current[idx(ml_gol, i, HALO_RIGHT)][l] = ml_gol->current[idx(ml_gol, i, LEFT)][l];
+            ml_gol->current[idx_flat(ml_gol, i, HALO_LEFT, l)]  = ml_gol->current[idx_flat(ml_gol, i, RIGHT, l)];
+            ml_gol->current[idx_flat(ml_gol, i, HALO_RIGHT, l)] = ml_gol->current[idx_flat(ml_gol, i, LEFT, l)];
         }
 
         // Top and bottom borders
         for (uint64_t j = LEFT; j < RIGHT + 1; j++) {
-            ml_gol->current[idx(ml_gol, HALO_TOP, j)][l]    = ml_gol->current[idx(ml_gol, BOTTOM, j)][l];
-            ml_gol->current[idx(ml_gol, HALO_BOTTOM, j)][l] = ml_gol->current[idx(ml_gol, TOP, j)][l];
+            ml_gol->current[idx_flat(ml_gol, HALO_TOP, j, l)]    = ml_gol->current[idx_flat(ml_gol, BOTTOM, j, l)];
+            ml_gol->current[idx_flat(ml_gol, HALO_BOTTOM, j, l)] = ml_gol->current[idx_flat(ml_gol, TOP, j, l)];
         }
         
         // Corners
-        ml_gol->current[idx(ml_gol, HALO_TOP, HALO_LEFT)][l]     = ml_gol->current[idx(ml_gol, BOTTOM, RIGHT)][l];
-        ml_gol->current[idx(ml_gol, HALO_TOP, HALO_RIGHT)][l]    = ml_gol->current[idx(ml_gol, BOTTOM, LEFT)][l];
-        ml_gol->current[idx(ml_gol, HALO_BOTTOM, HALO_LEFT)][l]  = ml_gol->current[idx(ml_gol, TOP, RIGHT)][l];
-        ml_gol->current[idx(ml_gol, HALO_BOTTOM, HALO_RIGHT)][l] = ml_gol->current[idx(ml_gol, TOP, LEFT)][l];
+        ml_gol->current[idx_flat(ml_gol, HALO_TOP, HALO_LEFT, l)]     = ml_gol->current[idx_flat(ml_gol, BOTTOM, RIGHT, l)];
+        ml_gol->current[idx_flat(ml_gol, HALO_TOP, HALO_RIGHT, l)]    = ml_gol->current[idx_flat(ml_gol, BOTTOM, LEFT, l)];
+        ml_gol->current[idx_flat(ml_gol, HALO_BOTTOM, HALO_LEFT, l)]  = ml_gol->current[idx_flat(ml_gol, TOP, RIGHT, l)];
+        ml_gol->current[idx_flat(ml_gol, HALO_BOTTOM, HALO_RIGHT, l)] = ml_gol->current[idx_flat(ml_gol, TOP, LEFT, l)];
     }
 
 }
@@ -223,7 +269,7 @@ color_t get_color_for_layer(const uint64_t layer, const uint64_t num_layers) {
 }
 
 void swap_grids(ml_gol_t* ml_gol) {
-    ml_cell_t* temp = ml_gol->current;
+    bool* temp = ml_gol->current;
     ml_gol->current = ml_gol->next;
     ml_gol->next = temp;
 }
@@ -232,10 +278,14 @@ __host__ __device__ size_t idx(const ml_gol_t* ml_gol, uint64_t i, uint64_t j) {
     return (i * (ml_gol->grid_size + 2)) + j;
 }
 
+__host__ __device__ size_t idx_flat(const ml_gol_t* ml_gol, uint64_t i, uint64_t j, uint64_t layer) {
+    return (((i * (ml_gol->grid_size + 2)) + j) * ml_gol->num_layers) + layer;
+}
+
 __device__ uint8_t count_layer_alive_neighbors(ml_gol_t* ml_gol, uint64_t i, uint64_t j, uint64_t layer) {
-    return  ml_gol->current[idx(ml_gol, i - 1, j - 1)][layer] + ml_gol->current[idx(ml_gol, i - 1, j)][layer] + ml_gol->current[idx(ml_gol, i - 1, j + 1)][layer] +
-            ml_gol->current[idx(ml_gol, i, j - 1)    ][layer] +                                                 ml_gol->current[idx(ml_gol, i, j + 1    )][layer] +
-            ml_gol->current[idx(ml_gol, i + 1, j - 1)][layer] + ml_gol->current[idx(ml_gol, i + 1, j)][layer] + ml_gol->current[idx(ml_gol, i + 1, j + 1)][layer];
+    return  ml_gol->current[idx_flat(ml_gol, i - 1, j - 1, layer)] + ml_gol->current[idx_flat(ml_gol, i - 1, j, layer)] + ml_gol->current[idx_flat(ml_gol, i - 1, j + 1, layer)] +
+            ml_gol->current[idx_flat(ml_gol, i, j - 1, layer)]     +                                                      ml_gol->current[idx_flat(ml_gol, i, j + 1    , layer)] +
+            ml_gol->current[idx_flat(ml_gol, i + 1, j - 1, layer)] + ml_gol->current[idx_flat(ml_gol, i + 1, j, layer)] + ml_gol->current[idx_flat(ml_gol, i + 1, j + 1, layer)];
 }
 
 __device__ color_t add_colors_device(const color_t c1, const color_t c2) {
@@ -246,12 +296,22 @@ __device__ color_t add_colors_device(const color_t c1, const color_t c2) {
     return result;
 }
 
-__global__ void ml_gol_kernel(ml_gol_t* ml_gol, uint64_t num_steps){
+__global__ void ml_gol_kernel(bool* d_current, bool* d_next, color_t* d_layers_colors, color_t* d_combined, color_t* d_dependent, uint64_t grid_size, uint64_t num_layers) {
     //extern __shared__ ml_cell_t blk_cells[];
     
     // actual index of grid with NO ghost cells
     uint64_t x = threadIdx.x + (blockDim.x * blockIdx.x);
     uint64_t y = threadIdx.y + (blockDim.y * blockIdx.y);
+
+    ml_gol_t* ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t)); 
+    ml_gol->current = d_current;
+    ml_gol->next = d_next;
+    ml_gol->layers_colors = d_layers_colors;
+    ml_gol->combined = d_combined;
+    ml_gol->dependent = d_dependent;
+    ml_gol->grid_size = grid_size;
+    ml_gol->num_layers = num_layers;
+
 
     size_t no_ghost_idx = x * ml_gol->grid_size + y;
 
@@ -262,17 +322,16 @@ __global__ void ml_gol_kernel(ml_gol_t* ml_gol, uint64_t num_steps){
     uint16_t tot_alive_neighbors = 0;
 
     for (uint64_t l = 0; l < ml_gol->num_layers; l++) {
-        
         uint8_t alive_neighbors = count_layer_alive_neighbors(ml_gol, x, y, l);
         tot_alive_neighbors += alive_neighbors;
 
         // The state of the current cell
-        bool is_alive = ml_gol->current[idx(ml_gol, x, y)][l];
+        bool is_alive = ml_gol->current[idx_flat(ml_gol, x, y, l)];
 
         // The state of the current cell in the next step based on the rules of the game of life
         bool next_state = (is_alive && !(alive_neighbors < 2 || alive_neighbors > 3)) || (!is_alive && alive_neighbors == 3);
 
-        ml_gol->next[idx(ml_gol, x, y)][l] = next_state;
+        ml_gol->next[idx_flat(ml_gol, x, y, l)] = next_state;
         
         // COMBINED
         if (is_alive) ml_gol->combined[no_ghost_idx] = add_colors_device(ml_gol->combined[no_ghost_idx], ml_gol->layers_colors[l]);
@@ -281,4 +340,6 @@ __global__ void ml_gol_kernel(ml_gol_t* ml_gol, uint64_t num_steps){
     //DEPENDENT
     uint8_t channel_value = (uint8_t) ((((float) tot_alive_neighbors) / 9) * 255);
     ml_gol->dependent[no_ghost_idx] = (color_t){channel_value, channel_value, channel_value};
+    
+    free(ml_gol);
 }
