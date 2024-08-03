@@ -82,7 +82,7 @@ void launch_kernel_each_step(ml_gol_t* ml_gol, bool** d_current, bool** d_next, 
  * @param grid_size The size of the grid
  * @param num_layers The number of layers
 */
-void fill_ghost_cells(bool* current, uint64_t grid_size, uint64_t num_layers);
+__host__ __device__ void fill_ghost_cells(bool* current, uint64_t grid_size, uint64_t num_layers);
 
 /**
  * @brief Gets the color for the given layer.
@@ -133,6 +133,14 @@ void reset_combined_and_dependent(ml_gol_t* ml_gol);
 void swap_grids(ml_gol_t* ml_gol);
 
 /**
+ * @brief Swaps the current and next grids on the device
+ * 
+ * @param d_current The current grid
+ * @param d_next The next grid
+ */
+__device__ void swap_grids_device(bool** d_current, bool** d_next);
+
+/**
  * @brief A function to calculate the grid idx (layer independent) from host or device
  * 
  * @param ml_gol The game of life structure
@@ -163,7 +171,7 @@ __host__ __device__ size_t idx_flat(uint64_t grid_size, uint64_t num_layers, uin
  * @param layer The layer to analyze
  * @return The number of alive neighbors
  */
-__device__ uint8_t count_layer_alive_neighbors(bool** current, uint64_t grid_size, uint64_t num_layers, uint64_t i, uint64_t j, uint64_t layer);
+__device__ uint8_t count_layer_alive_neighbors(bool* current, uint64_t grid_size, uint64_t num_layers, uint64_t i, uint64_t j, uint64_t layer);
 
 /**
  * @brief The kernel to calculate ONE STEP pf the multilayer GoL on the device 
