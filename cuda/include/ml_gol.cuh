@@ -34,8 +34,9 @@ typedef struct {
  * @param use_png Flag to indicate if PNG files should be created
  * @param density Density of the grid
  * @param seed Seed for the random number generator
+ * @param use_shared for using shared memory for current grid in kernel
  */
-void start_game_on_cuda(uint64_t grid_size, uint64_t num_layers, uint64_t num_steps, bool use_png, float density, uint64_t seed);
+void start_game_on_cuda(uint64_t grid_size, uint64_t num_layers, uint64_t num_steps, bool use_png, float density, uint64_t seed, bool use_shared);
 
 /**
  * @brief Initializes the multilayer game of life structure on CPU and GPU using Unified Memory.
@@ -191,6 +192,8 @@ __device__ uint8_t count_layer_alive_neighbors(bool* current, uint64_t grid_size
  * @param num_layers The number of layers
  */
 __global__ void ml_gol_kernel_one_step(bool* d_current, bool* d_next, color_t* d_layers_colors, color_t* d_combined, color_t* d_dependent, uint64_t grid_size, uint64_t num_layers);
+
+__global__ void ml_gol_kernel_one_step_shared(bool* d_current, bool* d_next, color_t* d_layers_colors, color_t* d_combined, color_t* d_dependent, uint64_t grid_size, uint64_t num_layers);
 
 __global__ void manage_ghost_cells_kernel(bool* d_current, bool* d_next, uint64_t grid_size, uint64_t num_layers);
 

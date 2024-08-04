@@ -25,7 +25,7 @@ extern "C" {
     } while (0)
 
 
-void start_game_on_cuda(const uint64_t grid_size, const uint64_t num_layers, const uint64_t num_steps, const bool create_png, const float density, const uint64_t seed) {
+void start_game_on_cuda(const uint64_t grid_size, const uint64_t num_layers, const uint64_t num_steps, const bool create_png, const float density, const uint64_t seed, bool use_shared) {
     ml_gol_t* ml_gol;
     ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
     init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
@@ -52,9 +52,6 @@ void start_game_on_cuda(const uint64_t grid_size, const uint64_t num_layers, con
     if (create_png) {
         create_all_pngs(ml_gol, &d_current, &d_next, &d_layers_colors, &d_combined, &d_dependent, num_steps, gridDim, blockDim);
     } else {
-        /* Insert this as third argument to use shared memory (remember changes in kernel)
-        (BLKDIM + 2) * (BLKDIM + 2) * num_layers
-        */
         fill_ghost_cells(ml_gol->current, ml_gol->grid_size, ml_gol->num_layers);
         update_d_ml_gol(ml_gol, &d_current, &d_next, &d_combined, &d_dependent);
 
@@ -65,26 +62,42 @@ void start_game_on_cuda(const uint64_t grid_size, const uint64_t num_layers, con
         printf("Max registers per block: %d VS register used IDK\n", prop.regsPerBlock);
         printf("Max shared memory per block: %zu VS sh memory used (if inserted): %zu\n", prop.sharedMemPerBlock, (BLKDIM + 2) * (BLKDIM + 2) * num_layers * sizeof(bool)); */
 
+        double tstart, tend, sum_times = 0;
+
+        // set  correct parameters and kernels based on the use of shared memory
+        void (*kernel_function)(bool*, bool*, color_t*, color_t*, color_t*, uint64_t, uint64_t);
+        kernel_function = use_shared ? ml_gol_kernel_one_step_shared : ml_gol_kernel_one_step;
+        const char* kernel_name = use_shared ? "ml_gol_kernel_one_step_shared" : "ml_gol_kernel_one_step";
+        size_t shared_mem_bytes = use_shared ? (BLKDIM + 2) * (BLKDIM + 2) * num_layers * sizeof(bool) : 0;
+
         for (uint64_t s = 1; s < num_steps; s++) {
-            ml_gol_kernel_one_step<<<gridDim, blockDim>>>(d_current, d_next, d_layers_colors, d_combined, d_dependent, grid_size, num_layers); cudaCheckError();
+            tstart = hpc_gettime();
+
+            kernel_function<<<gridDim, blockDim, shared_mem_bytes>>>(d_current, d_next, d_layers_colors, d_combined, d_dependent, grid_size, num_layers); cudaCheckError();
             cudaDeviceSynchronize();
+
+            tend = hpc_gettime();
 
             swap_grids_no_ghost_kernel<<<gridDim, blockDim>>>(d_current, d_next, grid_size, num_layers);
             cudaDeviceSynchronize();
 
             manage_ghost_cells_kernel<<<1,1>>>(d_current, d_next, grid_size, num_layers);
             cudaDeviceSynchronize();
+
+            sum_times += tend - tstart;
         }
+
+        printf("Mean exec time for \"%s\" after %lu steps: %.6f seconds\n", kernel_name, num_steps, sum_times / (num_steps - 1));
         
         //to print last step uncomment this
-        /* ml_gol_kernel_one_step<<<gridDim, blockDim>>>(d_current, d_next, d_layers_colors, d_combined, d_dependent, grid_size, num_layers); cudaCheckError();
+        kernel_function<<<gridDim, blockDim, shared_mem_bytes>>>(d_current, d_next, d_layers_colors, d_combined, d_dependent, grid_size, num_layers); cudaCheckError();
         cudaDeviceSynchronize();
 
         copy_back_to_host(ml_gol, &d_current, &d_next, &d_combined, &d_dependent);
 
         swap_grids(ml_gol);
 
-        create_png_for_step(ml_gol, num_steps); */
+        create_png_for_step(ml_gol, num_steps);
         
     }
 
@@ -394,6 +407,85 @@ __global__ void ml_gol_kernel_one_step(bool* d_current, bool* d_next, color_t* d
 
         // The state of the current cell
         bool is_alive = d_current[idx_flat(grid_size, num_layers, x, y, l)];
+        tot_alive_neighbors += (uint16_t) is_alive;
+
+        // The state of the current cell in the next step based on the rules of the game of life
+        bool next_state = (is_alive && !(alive_neighbors < 2 || alive_neighbors > 3)) || (!is_alive && alive_neighbors == 3);
+
+        d_next[idx_flat(grid_size, num_layers, x, y, l)] = next_state;
+        
+        // COMBINED
+        if (next_state) d_combined[no_ghost_idx] = add_colors_device(d_combined[no_ghost_idx], d_layers_colors[l]);
+    }
+
+    //DEPENDENT
+    uint8_t channel_value = (uint8_t) ((((float) tot_alive_neighbors) / 9) * 255);
+    d_dependent[no_ghost_idx] = (color_t){channel_value, channel_value, channel_value};
+}
+
+__global__ void ml_gol_kernel_one_step_shared(bool* d_current, bool* d_next, color_t* d_layers_colors, color_t* d_combined, color_t* d_dependent, uint64_t grid_size, uint64_t num_layers) {
+    extern __shared__ bool blk_current[];
+    
+    // actual index of grid with NO ghost cells
+    uint64_t x = threadIdx.x + (blockDim.x * blockIdx.x);
+    uint64_t y = threadIdx.y + (blockDim.y * blockIdx.y);
+
+    // shared memory indexes avoiding ghost cells
+    uint16_t local_x = threadIdx.x + 1;
+    uint16_t local_y = threadIdx.y + 1;
+
+    size_t no_ghost_idx = x * grid_size + y;
+
+    // since we have ghost cells, we need to avoid them
+    // this should do the trick
+    x++; y++;
+
+    uint16_t tot_alive_neighbors = 0;
+
+    // reset combined and dependent
+    d_combined[no_ghost_idx] = BLACK;
+    d_dependent[no_ghost_idx] = BLACK;
+
+    //copy to shared memory
+    size_t shared_idx = idx_flat(BLKDIM, num_layers, local_x, local_y, 0);
+    size_t global_idx = idx_flat(grid_size, num_layers, x, y, 0);
+    memcpy(blk_current + shared_idx, d_current + global_idx, num_layers * sizeof(bool));
+
+    // one thread copies ghost cells for the block
+    if (threadIdx.x == 0 && threadIdx.y == 0) {
+        for (uint64_t b_row = 0; b_row <= BLKDIM + 1; b_row++) {
+            // copy left halo + top/bottom left corners
+            shared_idx = idx_flat(BLKDIM, num_layers, b_row, 0, 0);
+            global_idx = idx_flat(grid_size, num_layers, (blockIdx.y * BLKDIM) + b_row, (blockIdx.x * BLKDIM), 0);
+            memcpy(blk_current + shared_idx, d_current + global_idx, num_layers * sizeof(bool));
+            
+            // copy right halo + top/bottom right corners
+            shared_idx = idx_flat(BLKDIM, num_layers, b_row, BLKDIM + 1, 0);
+            global_idx = idx_flat(grid_size, num_layers, (blockIdx.y * BLKDIM) + b_row, (blockIdx.x * BLKDIM) + BLKDIM + 1, 0);
+            memcpy(blk_current + shared_idx, d_current + global_idx, num_layers * sizeof(bool));
+        }
+
+        for (uint64_t b_column = 1; b_column <= BLKDIM; b_column++) {
+            // copy top halo
+            shared_idx = idx_flat(BLKDIM, num_layers, 0, b_column, 0);
+            global_idx = idx_flat(grid_size, num_layers, (blockIdx.y * BLKDIM), (blockIdx.x * BLKDIM) + b_column, 0);
+            memcpy(blk_current + shared_idx, d_current + global_idx, num_layers * sizeof(bool));
+
+            // copy bottom halo
+            shared_idx = idx_flat(BLKDIM, num_layers, BLKDIM + 1, b_column, 0);
+            global_idx = idx_flat(grid_size, num_layers, (blockIdx.y * BLKDIM) + BLKDIM + 1, (blockIdx.x * BLKDIM) + b_column, 0);
+            memcpy(blk_current + shared_idx, d_current + global_idx, num_layers * sizeof(bool));
+        }
+    }
+
+    __syncthreads();
+
+    for (uint64_t l = 0; l < num_layers; l++) {
+        uint8_t alive_neighbors = count_layer_alive_neighbors(blk_current, BLKDIM, num_layers, local_x, local_y, l);
+        tot_alive_neighbors += alive_neighbors;
+
+        // The state of the current cell
+        bool is_alive = blk_current[idx_flat(BLKDIM, num_layers, local_x, local_y, l)];
         tot_alive_neighbors += (uint16_t) is_alive;
 
         // The state of the current cell in the next step based on the rules of the game of life
