@@ -28,6 +28,7 @@ extern "C" {
 #define DEFAULT_NUM_STEPS 64
 #define DEFAULT_CREATE_PNG true
 #define DEFAULT_DENSITY 0.3
+#define DEFAULT_USE_SHARED false
 
 int main(int argc, char *argv[]) {
     
@@ -36,6 +37,7 @@ int main(int argc, char *argv[]) {
     uint64_t num_steps = DEFAULT_NUM_STEPS;
     bool create_png = DEFAULT_CREATE_PNG;
     float density = DEFAULT_DENSITY;
+    bool use_shared = DEFAULT_USE_SHARED;
     uint64_t seed = time(NULL);
 
     if (argc > 1) {
@@ -55,11 +57,15 @@ int main(int argc, char *argv[]) {
     }
 
     if (argc > 5) {
-        density = atof(argv[4]);
+        use_shared = atoi(argv[5]) != 0;
     }
 
     if (argc > 6) {
-        seed = atouint64(argv[4]);
+        seed = atouint64(argv[6]);
+    }
+
+    if (argc > 7) {
+        density = atof(argv[7]);
     }
 
     if (grid_size == 0 || num_layers == 0 || num_steps == 0) {
@@ -70,7 +76,7 @@ int main(int argc, char *argv[]) {
     
     printf("Starting Multilayer Game of Life on CUDA\n");
 
-    start_game_on_cuda(grid_size, num_layers, num_steps, create_png, density, seed);
+    start_game_on_cuda(grid_size, num_layers, num_steps, create_png, density, seed, use_shared);
 
     return EXIT_SUCCESS;
 }
