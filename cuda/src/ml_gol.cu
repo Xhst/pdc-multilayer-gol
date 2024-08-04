@@ -67,7 +67,6 @@ void start_game_on_cuda(const uint64_t grid_size, const uint64_t num_layers, con
         // set  correct parameters and kernels based on the use of shared memory
         void (*kernel_function)(bool*, bool*, color_t*, color_t*, color_t*, uint64_t, uint64_t);
         kernel_function = use_shared ? ml_gol_kernel_one_step_shared : ml_gol_kernel_one_step;
-        const char* kernel_name = use_shared ? "ml_gol_kernel_one_step_shared" : "ml_gol_kernel_one_step";
         size_t shared_mem_bytes = use_shared ? (BLKDIM + 2) * (BLKDIM + 2) * num_layers * sizeof(bool) : 0;
 
         for (uint64_t s = 1; s < num_steps; s++) {
@@ -87,17 +86,17 @@ void start_game_on_cuda(const uint64_t grid_size, const uint64_t num_layers, con
             sum_times += tend - tstart;
         }
 
-        printf("Mean exec time for \"%s\" after %lu steps: %.6f seconds\n", kernel_name, num_steps, sum_times / (num_steps - 1));
+        printf("Mean exec time %s after %lu steps: %.6f seconds\n", use_shared == 1 ? "USING SHARED MEMORY" : "WITHOUT SHARED MEMORY", num_steps, sum_times / (num_steps - 1));
         
         //to print last step uncomment this
-        kernel_function<<<gridDim, blockDim, shared_mem_bytes>>>(d_current, d_next, d_layers_colors, d_combined, d_dependent, grid_size, num_layers); cudaCheckError();
+        /* kernel_function<<<gridDim, blockDim, shared_mem_bytes>>>(d_current, d_next, d_layers_colors, d_combined, d_dependent, grid_size, num_layers); cudaCheckError();
         cudaDeviceSynchronize();
 
         copy_back_to_host(ml_gol, &d_current, &d_next, &d_combined, &d_dependent);
 
         swap_grids(ml_gol);
 
-        create_png_for_step(ml_gol, num_steps);
+        create_png_for_step(ml_gol, num_steps); */
         
     }
 
@@ -296,7 +295,7 @@ void reset_combined_and_dependent(ml_gol_t* ml_gol) {
     }
 }
 
-__host__ __device__ __forceinline__ void fill_ghost_cells(bool* current, uint64_t grid_size, uint64_t num_layers) {
+__host__ __device__ void fill_ghost_cells(bool* current, uint64_t grid_size, uint64_t num_layers) {
     const uint64_t TOP = 1;
     const uint64_t BOTTOM = grid_size - 1;
     const uint64_t LEFT = 1;
@@ -350,7 +349,7 @@ void swap_grids(ml_gol_t* ml_gol) {
     ml_gol->next = temp;
 }
 
-__device__ __forceinline__ void swap_grid_cell(bool* current, bool* next, uint64_t x, uint64_t y, uint64_t num_layers, uint64_t grid_size) {
+__device__ void swap_grid_cell(bool* current, bool* next, uint64_t x, uint64_t y, uint64_t num_layers, uint64_t grid_size) {
     bool temp;
     for (uint64_t l = 0; l < num_layers; l++) {
         size_t idx = idx_flat(grid_size, num_layers, x, y, l);
@@ -364,17 +363,17 @@ __host__ __device__ size_t idx(const ml_gol_t* ml_gol, uint64_t i, uint64_t j) {
     return (i * (ml_gol->grid_size + 2)) + j;
 }
 
-__host__ __device__ __forceinline__ size_t idx_flat(const uint64_t grid_size, uint64_t num_layers, uint64_t i, uint64_t j, uint64_t layer) {
+__host__ __device__ size_t idx_flat(const uint64_t grid_size, uint64_t num_layers, uint64_t i, uint64_t j, uint64_t layer) {
     return (((i * (grid_size + 2)) + j) * num_layers) + layer;
 }
 
-__device__ __forceinline__ uint8_t count_layer_alive_neighbors(bool* current, uint64_t grid_size, uint64_t num_layers, uint64_t i, uint64_t j, uint64_t layer) {
+__device__ uint8_t count_layer_alive_neighbors(bool* current, uint64_t grid_size, uint64_t num_layers, uint64_t i, uint64_t j, uint64_t layer) {
     return  current[idx_flat(grid_size, num_layers, i - 1, j - 1, layer)] + current[idx_flat(grid_size, num_layers, i - 1, j, layer)] + current[idx_flat(grid_size, num_layers, i - 1, j + 1, layer)] +
             current[idx_flat(grid_size, num_layers, i, j - 1,     layer)] +                                                              current[idx_flat(grid_size, num_layers, i, j + 1    , layer)] +
             current[idx_flat(grid_size, num_layers, i + 1, j - 1, layer)] + current[idx_flat(grid_size, num_layers, i + 1, j, layer)] + current[idx_flat(grid_size, num_layers, i + 1, j + 1, layer)];
 }
 
-__device__ __forceinline__ color_t add_colors_device(const color_t c1, const color_t c2) {
+__device__ color_t add_colors_device(const color_t c1, const color_t c2) {
     color_t result;
     result.r = (c1.r + c2.r) > 255 ? 255 : c1.r + c2.r;
     result.g = (c1.g + c2.g) > 255 ? 255 : c1.g + c2.g;
