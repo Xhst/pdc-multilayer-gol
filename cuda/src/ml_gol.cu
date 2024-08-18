@@ -497,7 +497,7 @@ __global__ void ml_gol_kernel_one_step_shared(bool* d_current, bool* d_next, col
     }
 
     //DEPENDENT
-    uint8_t channel_value = (uint8_t) ((((float) tot_alive_neighbors) / 9) * 255);
+    uint8_t channel_value = (uint8_t) ((((float) tot_alive_neighbors) / (9 * num_layers)) * 255);
     d_dependent[no_ghost_idx] = (color_t){channel_value, channel_value, channel_value};
 }
 
