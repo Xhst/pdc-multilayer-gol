@@ -9,7 +9,7 @@ void start_game(const uint64_t grid_size, const uint64_t num_layers, const uint6
 
     init_ml_gol(ml_gol, grid_size, num_layers, create_png, density, seed);
 
-    printf("Starting simulation with %ld steps and %d threads\n", num_steps, omp_get_num_threads());
+    printf("Starting simulation with %ld steps and %d threads\n", num_steps, omp_get_max_threads());
 
     for (uint64_t s = 1; s < num_steps; s++) {
 #pragma omp parallel for
