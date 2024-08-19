@@ -2,13 +2,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <omp.h>
 
 void start_game(const uint64_t grid_size, const uint64_t num_layers, const uint64_t num_steps, const bool create_png, const float density, const uint64_t seed) {
     ml_gol_t* ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
 
     init_ml_gol(ml_gol, grid_size, num_layers, create_png, density, seed);
 
-    printf("Starting simulation with %ld steps and %s threads\n", num_steps, getenv("OMP_NUM_THREADS"));
+    printf("Starting simulation with %ld steps and %d threads\n", num_steps, omp_get_num_threads());
 
     for (uint64_t s = 1; s < num_steps; s++) {
 #pragma omp parallel for
