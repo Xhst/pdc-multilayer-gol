@@ -7,7 +7,11 @@ At each step it returns two matrices, one representing the first N layers (**com
 The combined matrix simultaneously represents all game-of-life layers with a combination of colors, while the dependent matrix will have the value of cells with rules based on the other layers.
 
 ## 🔗 Dependencies
-To compile this executible you need to install [this](https://github.com/LuaDist/libpng/blob/master/INSTALL) library to create pngs. 
+To compile this executible you need to install libpng-dev library to create pngs.
+On Ubuntu for example:
+```bash
+sudo apt install libpng-dev
+```
 
 ## 🔵 OpenMP version
 ### 🛠️ Build
