@@ -26,6 +26,13 @@ extern "C" {
 
 
 void start_game_on_cuda(const uint64_t grid_size, const uint64_t num_layers, const uint64_t num_steps, const bool create_png, const float density, const uint64_t seed, bool use_shared) {
+    
+    // check if grid_size is multiple of BLKDIM
+    if (grid_size % BLKDIM != 0) {
+        printf("\n\033[31mInvalid input(grid_size): choose a multiple of %d! (example 512, 1024, 4096, 12288)\033[0m\n\n", BLKDIM);
+        exit(1);
+    }
+
     ml_gol_t* ml_gol;
     ml_gol = (ml_gol_t*) malloc(sizeof(ml_gol_t));
     init_ml_gol(ml_gol, grid_size, num_layers, density, seed);
